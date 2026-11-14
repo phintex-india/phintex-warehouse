@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#163351">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Godown Stock">
+<title>Godown Stock Manager</title>
+<link rel="icon" id="fav">
+<style>
+:root{--nav:#163351;--nav2:#21466f;--acc:#0e95a2;--acc2:#ec7a1a;--teal:#12b2c0;--bg:#f2f5f9;--card:#fff;--line:#e3e8ef;--txt:#1b2533;--mut:#6b7789;--ok:#15803d;--bad:#c62828;--warn:#b45309;--r:10px}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+button,input,select,textarea{font:inherit}
+a{color:var(--acc)}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(140deg,#163351 0%,#1d4a72 55%,#12b2c0 135%);position:relative;overflow:hidden}
+#login:before{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;border-radius:50%;background:#ec7a1a;opacity:.9}
+#login:after{content:"";position:absolute;left:-60px;bottom:-60px;width:0;height:0;border-left:260px solid transparent;border-bottom:260px solid rgba(18,178,192,.35)}
+.lbox{background:#fff;border-radius:16px;padding:30px 30px 26px;position:relative;z-index:1;border-top:5px solid #ec7a1a;width:min(400px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.lbox h1{margin:0 0 4px;font-size:20px;color:var(--nav);text-align:center}
+#llogo{display:block;width:240px;max-width:80%;margin:0 auto 16px}
+.lgm{width:42px;height:42px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}.lgm img{width:34px;height:34px}
+.lbox p{margin:0 0 20px;color:var(--mut);text-align:center}
+.logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;margin-bottom:14px}
+#app{display:none;min-height:100vh}
+#side{position:fixed;left:0;top:0;bottom:0;width:236px;background:var(--nav);color:#c9d6e8;overflow-y:auto;z-index:30;transition:transform .2s}
+#side .brand{padding:16px 16px 12px;display:flex;gap:10px;align-items:center;border-bottom:1px solid rgba(255,255,255,.08)}
+#side .brand .logo{width:36px;height:36px;font-size:14px;margin:0;border-radius:9px;flex:none}
+#side .brand b{color:#fff;display:block;font-size:13.5px;line-height:1.25}
+#side .brand small{font-size:11px;color:#8fa6c4}
+.navg{padding:10px 0 4px}
+.navg>div:first-child{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#6f88a8;padding:6px 18px}
+.nv{display:flex;align-items:center;gap:10px;padding:8px 18px;cursor:pointer;color:#c9d6e8;border-left:3px solid transparent;font-size:13.5px}
+.nv:hover{background:var(--nav2);color:#fff}
+.nv.on{background:var(--nav2);color:#fff;border-left-color:#ec7a1a}
+.nv i{font-style:normal;width:18px;text-align:center}
+#main{margin-left:236px;min-height:100vh}
+#top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 20px}
+#top h2{margin:0;font-size:17px;flex:1}
+#ham{display:none;border:0;background:none;font-size:22px;cursor:pointer}
+.who{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut)}
+.who b{color:var(--txt)}
+.av{width:32px;height:32px;border-radius:50%;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+#view{padding:20px}
+@media(max-width:900px){#side{transform:translateX(-100%)}#side.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.4)}#main{margin-left:0}#ham{display:block}#view{padding:12px}.who .wn{display:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.card h3{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px}
+.grid{display:grid;gap:14px}.grid>*{min-width:0}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--acc))}
+.kpi small{color:var(--mut);font-size:12px}
+.kpi b{display:block;font-size:22px;margin-top:4px}
+.kpi span{font-size:11.5px;color:var(--mut)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:4px;min-width:150px;flex:1}
+.f label{font-size:12px;color:var(--mut);font-weight:600}
+.rq{color:var(--bad)}
+input,select,textarea{border:1px solid #cdd5e0;border-radius:8px;padding:8px 10px;background:#fff;color:var(--txt);width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(18,178,192,.2)}
+input[readonly]{background:#f5f7fa}
+input[type=checkbox]{width:auto}
+.btn{text-decoration:none;border:1px solid #cdd5e0;background:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600;color:var(--txt);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#f3f6fa}
+.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}.btn.p:hover{background:#0b7d88}
+.btn.g{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.d{color:var(--bad);border-color:#f0c4c4}.btn.d:hover{background:#fdecec}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:8px;max-height:65vh}
+table{border-collapse:collapse;width:100%;font-size:12.8px}
+th{background:#e9f0f6;text-align:left;padding:8px 9px;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:#45536a;position:sticky;top:0;z-index:1;white-space:nowrap;border-bottom:1px solid var(--line)}
+td{padding:7px 9px;border-bottom:1px solid #edf0f5;white-space:nowrap}
+tr:hover td{background:#f8fbff}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tfoot td{background:#f6f8fb;font-weight:700;position:sticky;bottom:0}
+.bdg{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;background:var(--c,#64748b)}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11.5px;font-weight:600}
+.tag.ok{background:#e3f5e8;color:var(--ok)}.tag.bad{background:#fde8e8;color:var(--bad)}.tag.warn{background:#fff3dc;color:var(--warn)}.tag.inf{background:#e6effc;color:var(--acc)}.tag.mu{background:#eef1f5;color:#566275}
+.pos{color:var(--ok);font-weight:600}.neg{color:var(--bad);font-weight:600}.mut{color:var(--mut)}
+.hint{background:#eef6ff;border:1px solid #cfe2fb;color:#1e4f8f;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.warnbox{background:#fff6e6;border:1px solid #f5d9a6;color:#7a4b00;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.tbtn{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.tb{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;border-top:3px solid var(--c)}
+.tb:hover{box-shadow:0 4px 14px rgba(15,39,68,.08)}
+.tb b{display:block;font-size:13.5px}.tb small{color:var(--mut);font-size:11.5px}
+.lines td{padding:5px 6px;vertical-align:top}.lines input{padding:6px 7px}
+.lines .sub{font-size:11px;color:var(--mut);margin-top:3px;white-space:normal}
+.srow td{background:#fafcff!important;white-space:normal}
+.chips{display:flex;flex-wrap:wrap;gap:5px;max-height:180px;overflow:auto}
+.chip{font-family:Consolas,monospace;font-size:11.5px;background:#e6f7f9;border:1px solid #b8e6ec;border-radius:6px;padding:2px 4px 2px 7px;display:inline-flex;align-items:center;gap:4px}
+.chip b{cursor:pointer;color:var(--bad);font-weight:700;padding:0 3px}
+.chip.miss{background:#fde8e8;border-color:#f3c0c0;text-decoration:line-through}
+.sbtn{border:1px solid #b8e6ec;background:#e6f7f9;color:var(--acc);border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700;cursor:pointer}
+.sbtn.bad{background:#fde8e8;border-color:#f3c0c0;color:var(--bad)}
+.scanbar{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.scanbar .big{flex:3;min-width:240px;font-size:15px;padding:12px 14px;border:2px dashed #9fc0ef;background:#f6faff}
+.scanlog{font-size:12.5px;margin-top:8px;min-height:18px}
+.tot{width:min(380px,100%);margin-left:auto;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tot div{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid #eef1f5;font-variant-numeric:tabular-nums}
+.tot div.gt{background:var(--nav);color:#fff;font-weight:700;font-size:16px;border:0}
+.words{font-size:12px;color:var(--mut);margin-top:6px;text-align:right}
+.party{font-size:12px;color:var(--mut);margin-top:4px;min-height:16px}
+.pk{position:absolute;z-index:999;background:#fff;border:1px solid #cdd5e0;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-height:300px;overflow:auto;display:none}
+.pki{padding:7px 10px;cursor:pointer;border-bottom:1px solid #f0f2f6}
+.pki b{display:block;font-size:13px;font-weight:600}.pki small{color:var(--mut);font-size:11.5px}
+.pki.on,.pki:hover{background:#e3f6f8}
+.modal{position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:4vh 10px;overflow:auto}
+.mbox{background:#fff;border-radius:12px;width:min(820px,100%);padding:20px;position:relative}
+.mbox .x{position:absolute;right:12px;top:10px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--mut)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1b2533;color:#fff;padding:10px 18px;border-radius:8px;z-index:300;display:none;font-size:13px;max-width:90vw}
+.sync{font-size:11.5px;padding:3px 9px;border-radius:20px;background:#eef2f8;color:var(--mut);cursor:pointer}
+.sync.ok{background:#e3f5e8;color:var(--ok)}.sync.err{background:#fde8e8;color:var(--bad)}
+#reader{width:100%;max-width:440px;margin:auto}
+video{width:100%;border-radius:8px;background:#000}
+.lbl-sheet{display:flex;flex-wrap:wrap;gap:8px}
+.lbl{border:1px dashed #9aa6b8;padding:6px 8px;width:62mm;height:34mm;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:#fff}
+.lbl .nm{font-weight:700;font-size:11px;line-height:1.2;max-height:2.4em;overflow:hidden}
+.lbl .al{font-size:9.5px;color:#444}
+.lbl svg{width:100%;height:12mm}
+.lbl .cd{font-family:monospace;font-size:10px;text-align:center;letter-spacing:1px}
+.empty{text-align:center;padding:30px;color:var(--mut)}
+.split{display:grid;grid-template-columns:2fr 1fr;gap:16px}.split>div{min-width:0}
+@media(max-width:1000px){.split{grid-template-columns:1fr}}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 14px;font-weight:600;cursor:pointer;font-size:12.5px}
+.seg button.on{background:var(--c);border-color:var(--c);color:#fff}
+#printArea{display:none}
+.pinv{font-family:Arial,sans-serif;font-size:11.5px;color:#000}
+.pinv table{font-size:11px}.pinv th,.pinv td{border:1px solid #555;padding:4px 6px;white-space:normal}
+.pinv th{background:#eee!important;position:static;color:#000}
+.pinv .hd{border:1px solid #555;padding:8px;text-align:center}
+.pinv .box{display:grid;grid-template-columns:1fr 1fr;border:1px solid #555;border-top:0}
+.pinv .box>div{padding:6px 8px}.pinv .box>div+div{border-left:1px solid #555}
+.pinv .ann{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #555;font-family:Consolas,monospace;font-size:10.5px}
+.pinv .ann div{padding:3px 6px;border-bottom:1px solid #ccc;border-right:1px solid #ccc}
+@media print{
+ body{background:#fff}
+ #app,#login,.modal,#toast{display:none!important}
+ #printArea{display:block!important}
+ #printArea table{font-size:11px}
+ #printArea th{position:static;background:#eee!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .lbl{border:1px dashed #ccc;page-break-inside:avoid}
+ .pgb{page-break-before:always}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+ <div class="lbox">
+  <img id="llogo" alt="Phintex">
+  <h1>Godown Stock Manager</h1>
+  <p id="lcomp">Multi-warehouse stock control</p>
+  <div class="f" style="margin-bottom:12px"><label>Username</label><input id="lu" autocomplete="username" placeholder="admin / godown user"></div>
+  <div class="f" style="margin-bottom:16px"><label>Password</label><input id="lp" type="password" autocomplete="current-password" placeholder="••••••"></div>
+  <button class="btn p" style="width:100%;justify-content:center;padding:11px" id="lbtn">Login</button>
+  <div id="lerr" style="color:var(--bad);font-size:13px;margin-top:10px"></div>
+  <button class="btn" id="instBtn" style="display:none;width:100%;justify-content:center;margin-top:10px" onclick="if(_inst){_inst.prompt();_inst.userChoice.then(()=>{_inst=null;this.style.display='none'})}">📲 Install App on this phone</button>
+  <div style="margin-top:16px;font-size:12px;color:var(--mut);display:flex;justify-content:space-between">
+   <span>Separate login for every godown</span><span class="mut" style="font-size:11px">☁ Cloud connected</span><a href="#" id="lset" style="display:none">⚙ Server setup</a>
+  </div>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);text-align:center">🛠️ Help: Developer <b style="color:var(--nav)">Ritik Gupta</b> • 📞 <a href="tel:+918114019506"><b>81140 19506</b></a></div>
+ </div>
+</div>
+
+<div id="app">
+ <aside id="side"></aside>
+ <div id="main">
+  <div id="top">
+   <button id="ham">☰</button>
+   <h2 id="ttl">Dashboard</h2>
+   <span class="sync" id="syncSt" title="Cloud sync">Offline mode</span>
+   <div class="who"><div class="av" id="av">A</div><div class="wn"><b id="wn"></b><br><span id="wg"></span></div></div>
+   <button class="btn sm" id="logout">Logout</button>
+  </div>
+  <div id="view"></div>
+ </div>
+</div>
+<div id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+/* =====================================================================
+   GODOWN STOCK MANAGER  v2 — serial / QR tracking, invoice-style entries
+   ===================================================================== */
+const LS='gsm_db_v1', SALT='gsm|';
+const DEFAULT_SYNC='https://script.google.com/macros/s/AKfycbw7XltbsDecK8NugVbCgkn8YoMT18tKITshaVIjYiSpwqCUs_gkw6eR_nC1teTTBYNk/exec';
+const LOGO_FULL='data:image/png;base64,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', LOGO_MARK='data:image/png;base64,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';
+let DB=null, ME=null, VIEW='dashboard', P={}, CUR=null, REPORT=null;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>(p||'')+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const dmy=s=>s?s.slice(8,10)+'-'+s.slice(5,7)+'-'+s.slice(0,4):'';
+const num=v=>{if(v===null||v===undefined||v==='')return 0;if(typeof v==='number')return v;let s=String(v).trim();let neg=/^\(-\)|^-|^\(.*\)$/.test(s);let n=parseFloat(s.replace(/\(-\)/,'').replace(/[^0-9.]/g,''));if(isNaN(n))return 0;return neg?-n:n};
+const r2=n=>Math.round((+n||0)*100)/100;
+const fq=n=>(+n||0).toLocaleString('en-IN',{maximumFractionDigits:3});
+const fm=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fyStart=()=>{const d=new Date();const y=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;return y+'-04-01'};
+function toast(m,ms){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',ms||2600)}
+let AC;function beep(ok){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=ok?1400:260;g.gain.value=.06;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+(ok?.07:.4))}catch(e){}}
+function inWords(n){n=Math.round(Math.abs(n));if(!n)return'Zero';const a=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],b=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+ const two=x=>x<20?a[x]:b[Math.floor(x/10)]+(x%10?' '+a[x%10]:'');const three=x=>(x>=100?a[Math.floor(x/100)]+' Hundred'+(x%100?' ':''):'')+(x%100?two(x%100):'');
+ let s='';const cr=Math.floor(n/1e7);n%=1e7;const l=Math.floor(n/1e5);n%=1e5;const t=Math.floor(n/1e3);n%=1e3;
+ if(cr)s+=(cr>999?inWords(cr):three(cr))+' Crore ';if(l)s+=two(l)+' Lakh ';if(t)s+=two(t)+' Thousand ';if(n)s+=three(n);return s.trim()}
+
+/* ---------- SHA-256 ---------- */
+function sha256(str){
+ str=unescape(encodeURIComponent(str));
+ const rr=(v,a)=>(v>>>a)|(v<<(32-a));const mp=Math.pow,mw=mp(2,32);let i,j,res='';const w=[],bl=str.length*8;
+ let h=sha256.h=sha256.h||[];const k=sha256.k=sha256.k||[];let pc=k.length;const ic={};
+ for(let c=2;pc<64;c++){if(!ic[c]){for(i=0;i<313;i+=c)ic[i]=c;h[pc]=(mp(c,.5)*mw)|0;k[pc++]=(mp(c,1/3)*mw)|0}}
+ str+='\x80';while(str.length%64-56)str+='\x00';
+ for(i=0;i<str.length;i++){j=str.charCodeAt(i);w[i>>2]|=j<<((3-i)%4)*8}
+ w[w.length]=((bl/mw)|0);w[w.length]=bl;
+ for(j=0;j<w.length;){const W=w.slice(j,j+=16);const oh=h;h=h.slice(0,8);
+  for(i=0;i<64;i++){const w15=W[i-15],w2=W[i-2],a=h[0],e=h[4];
+   const t1=h[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&h[5])^((~e)&h[6]))+k[i]+(W[i]=(i<16)?W[i]:(W[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+W[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+   const t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&h[1])^(a&h[2])^(h[1]&h[2]));h=[(t1+t2)|0].concat(h);h[4]=(h[4]+t1)|0}
+  for(i=0;i<8;i++)h[i]=(h[i]+oh[i])|0}
+ for(i=0;i<8;i++)for(j=3;j+1;j--){const b=(h[i]>>(j*8))&255;res+=(b<16?'0':'')+b.toString(16)}
+ return res;
+}
+const ph=p=>sha256(SALT+p);
+
+/* ---------- VOUCHER TYPES ---------- */
+const T={
+ OPN:{n:'Opening Stock',s:'Opening',c:'#64748b',d:'Starting stock of a godown (Admin)'},
+ PUR:{n:'Purchase / Inward',s:'Purchase',c:'#15803d',d:'Goods received from supplier'},
+ SAL:{n:'Sale / Outward',s:'Sale',c:'#c62828',d:'Goods sold & dispatched to customer'},
+ SRT:{n:'Sale Return',s:'Sale Return',c:'#0891b2',d:'Goods returned by customer'},
+ PRT:{n:'Purchase Return',s:'Purch. Return',c:'#ea580c',d:'Goods returned to supplier'},
+ TRF:{n:'Stock Transfer',s:'Transfer',c:'#7c3aed',d:'Move goods from one godown to another'},
+ DMG:{n:'Damage / Shortage',s:'Damage',c:'#a16207',d:'Broken / missing / scrap stock'},
+ PHY:{n:'Physical Verification',s:'Physical',c:'#475569',d:'Stock count — does not change stock'}
+};
+const FIELDS={
+ OPN:[],
+ PUR:[['partyId','Supplier','party',1],['refNo','Supplier Invoice No.','text'],['invDate','Invoice Date','date'],['ewb','e-Way Bill No.','text'],['vehicle','Vehicle No.','text'],['lr','LR / GR / Bilty No.','text'],['transporter','Transporter','text'],['dcNo','Packing List / DC No.','text']],
+ SAL:[['partyId','Customer (Buyer)','party',1],['refNo','Sale Invoice No.','text'],['invDate','Invoice Date','date'],['ewb','e-Way Bill No.','text'],['vehicle','Vehicle No.','text'],['dcNo','Delivery Challan No.','text'],['transporter','Dispatched Through','text'],['lr','LR / RR No.','text'],['orderNo','Buyer Order / Reference','text']],
+ SRT:[['partyId','Customer','party',1],['refNo','Credit Note No.','text',1],['refNo2','Against Sale Invoice No.','text'],['invDate','Credit Note Date','date'],['vehicle','Vehicle No.','text']],
+ PRT:[['partyId','Supplier','party',1],['refNo','Debit Note No.','text',1],['refNo2','Against Purchase Invoice No.','text'],['invDate','Debit Note Date','date'],['vehicle','Vehicle No.','text']],
+ TRF:[['toGodownId','To Godown','godown',1],['dcNo','Transfer Challan No.','text'],['ewb','e-Way Bill No.','text'],['vehicle','Vehicle No.','text']],
+ DMG:[['reason','Reason','select:Damage,Shortage,Theft / Missing,Sample,Internal Use,Expired / Scrap',1]]
+};
+const OUTT=['SAL','PRT','DMG','TRF'], INT=['OPN','PUR','SRT'], GSTT=['PUR','SAL','SRT','PRT'];
+
+/* ---------- DB ---------- */
+function seed(){
+ const G=[['G1','Branch Office: Ashiana-Lucknow','ASH'],['G2','Branch Office: Lakhimpur','LKP'],['G3','Head Office Sitapur WIP','STP'],['G4','Warehouse: Khairabad, Sitapur','KHB'],['G5','Warehouse: Nadarganj, Lucknow','NDG'],['G6','Warehouse: R-16 Vrindavan Stock','VRD']];
+ const U=[['U0','admin','admin@123','Administrator','admin',''],['U1','ashiana','ash@123','Ashiana Manager','manager','G1'],['U2','lakhimpur','lkp@123','Lakhimpur Manager','manager','G2'],['U3','sitapur','stp@123','Sitapur HO Manager','manager','G3'],['U4','khairabad','khb@123','Khairabad Manager','manager','G4'],['U5','nadarganj','ndg@123','Nadarganj Manager','manager','G5'],['U6','vrindavan','vrd@123','Vrindavan Manager','manager','G6']];
+ return {ver:2,meta:{company:'My Company',gstin:'',address:'',syncUrl:'',autoSync:true,allowNeg:false,serialRegex:'[A-Z]{2}\\d{10,}',lastSync:{}},dirty:{},
+  godowns:G.map(g=>({id:g[0],name:g[1],code:g[2],active:true,updatedAt:0})),
+  users:U.map(u=>({id:u[0],username:u[1],passHash:ph(u[2]),name:u[3],role:u[4],godownId:u[5],active:true,updatedAt:0})),
+  items:[],parties:[],vouchers:[],audit:[],deletions:[]};
+}
+function load(){try{DB=JSON.parse(localStorage.getItem(LS))}catch(e){DB=null}if(!DB||!DB.godowns){DB=seed();save(false)}DB.deletions=DB.deletions||[];DB.dirty=DB.dirty||{};DB.meta.lastSync=DB.meta.lastSync||{};if(!DB.meta.serialRegex)DB.meta.serialRegex='[A-Z]{2}\\d{10,}'}
+function save(markSync=true){try{localStorage.setItem(LS,JSON.stringify(DB))}catch(e){toast('Browser storage is full — take a backup and enable Cloud Sync',5000)}if(markSync&&DB.meta.syncUrl&&DB.meta.autoSync)debSync()}
+function touch(coll,rec){rec.updatedAt=Date.now();DB.dirty[coll+'|'+rec.id]=rec.updatedAt}
+function put(coll,rec){const i=DB[coll].findIndex(r=>r.id===rec.id);if(i<0)DB[coll].push(rec);else DB[coll][i]=rec;touch(coll,rec)}
+function log(action,detail,g){const a={id:uid('A'),t:new Date().toISOString(),user:ME?ME.username:'-',action,detail,godownId:g||(ME&&ME.godownId)||''};DB.audit.push(a);touch('audit',a)}
+const G=id=>DB.godowns.find(g=>g.id===id), gN=id=>(G(id)||{}).name||'', I=id=>DB.items.find(x=>x.id===id), Pt=id=>DB.parties.find(x=>x.id===id), pN=id=>(Pt(id)||{}).name||'';
+const isAdmin=()=>ME&&ME.role==='admin';
+const myG=()=>isAdmin()?DB.godowns.filter(g=>g.active!==false).map(g=>g.id):[ME.godownId];
+const visV=()=>DB.vouchers.filter(v=>!v.deleted&&(isAdmin()||v.godownId===ME.godownId||v.toGodownId===ME.godownId));
+const STATES={'01':'Jammu & Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','26':'Dadra & Nagar Haveli and Daman & Diu','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','34':'Puducherry','36':'Telangana','37':'Andhra Pradesh','38':'Ladakh'};
+const compState=()=>(DB.meta.gstin||'09').slice(0,2);
+const partyState=p=>p&&p.gstin&&p.gstin.length>=2?p.gstin.slice(0,2):compState();
+const isInter=v=>!!v.partyId&&partyState(Pt(v.partyId))!==compState();
+
+/* ---------- TOTALS ---------- */
+function vTotals(v){let q=0,sr=0;(v.lines||[]).forEach(l=>{if(!l.itemId)return;q+=num(l.qty);sr+=(l.serials||[]).length});return{qty:q,serials:sr}}
+const bcat=it=>[it&&it.brand,it&&it.group].filter(Boolean).join(' • ');
+
+/* ---------- STOCK ENGINE ---------- */
+function moves(v){
+ if(v.deleted||v.type==='PHY')return[];const m=[];
+ (v.lines||[]).forEach(l=>{const q=num(l.qty);const b={v,l,item:l.itemId,date:v.date};
+  switch(v.type){
+   case'OPN':m.push({...b,g:v.godownId,k:'opn',q});break;
+   case'PUR':m.push({...b,g:v.godownId,k:'pur',q});break;
+   case'SRT':m.push({...b,g:v.godownId,k:'srt',q});break;
+   case'SAL':m.push({...b,g:v.godownId,k:'sal',q:-q});break;
+   case'PRT':m.push({...b,g:v.godownId,k:'prt',q:-q});break;
+   case'DMG':m.push({...b,g:v.godownId,k:'dmg',q:-q});break;
+   case'TRF':m.push({...b,g:v.godownId,k:'tout',q:-q});
+     if(v.status==='Received')m.push({...b,g:v.toGodownId,k:'tin',q:num(l.recvQty??l.qty),date:v.recvDate||v.date});break;
+  }});
+ return m;
+}
+function allMoves(gs){const S=new Set(gs);const out=[];DB.vouchers.forEach(v=>moves(v).forEach(m=>{if(S.has(m.g))out.push(m)}));return out}
+function summary(gs,from,to,byG,excludeV){
+ const R={};const key=(i,g)=>byG?i+'|'+g:i;const S=new Set(gs);
+ const mk=(i,g)=>({itemId:i,godownId:byG?g:'',op:0,pur:0,srt:0,tin:0,sal:0,prt:0,tout:0,dmg:0,transit:0});
+ DB.vouchers.forEach(v=>{if(excludeV&&v.id===excludeV)return;moves(v).forEach(m=>{if(!S.has(m.g)||m.date>to)return;const k=key(m.item,m.g);
+  const r=R[k]||(R[k]=mk(m.item,m.g));if(m.k==='opn'||m.date<from)r.op+=m.q;else r[m.k]+=Math.abs(m.q)});
+  if(v.type==='TRF'&&!v.deleted&&v.status!=='Received'&&S.has(v.godownId)&&v.date<=to)(v.lines||[]).forEach(l=>{const k=key(l.itemId,v.godownId);(R[k]||(R[k]=mk(l.itemId,v.godownId))).transit+=num(l.qty)});
+ });
+ return Object.values(R).map(r=>{r.tIn=r.pur+r.srt+r.tin;r.tOut=r.sal+r.prt+r.tout+r.dmg;r.cl=r.op+r.tIn-r.tOut;return r});
+}
+function stockOf(itemId,g,excludeV){const r=summary([g],'1900-01-01','9999-12-31',false,excludeV).find(x=>x.itemId===itemId);return r?r.cl:0}
+
+/* ---------- SERIAL ENGINE ---------- */
+const ST_COL={'In Stock':'ok','Sold':'inf','In Transit':'warn','Returned to Supplier':'mu','Damaged / Missing':'bad','Missing in Transit':'bad'};
+function serialIndex(excludeV){
+ const S={};
+ DB.vouchers.filter(v=>!v.deleted&&v.id!==excludeV&&v.type!=='PHY').sort((a,b)=>a.date.localeCompare(b.date)||((a.createdAt||0)-(b.createdAt||0))).forEach(v=>(v.lines||[]).forEach(l=>(l.serials||[]).forEach(o=>{
+  const s=o.s;const r=S[s]||(S[s]={s,itemId:l.itemId,pallet:'',status:'',g:'',hist:[]});if(o.p)r.pallet=o.p;r.itemId=l.itemId;
+  switch(v.type){
+   case'OPN':case'PUR':case'SRT':r.status='In Stock';r.g=v.godownId;if(v.type!=='SRT'){r.inV=v}else r.srtV=v;break;
+   case'SAL':r.status='Sold';r.g=v.godownId;r.outV=v;break;
+   case'PRT':r.status='Returned to Supplier';r.g=v.godownId;r.outV=v;break;
+   case'DMG':r.status='Damaged / Missing';r.g=v.godownId;r.outV=v;break;
+   case'TRF':if(v.status==='Received'){if((l.missing||[]).includes(s)){r.status='Missing in Transit';r.g=v.godownId}else{r.status='In Stock';r.g=v.toGodownId}}else{r.status='In Transit';r.g=v.godownId}r.trV=v;break;
+  }
+  r.hist.push(v);
+ })));
+ return S;
+}
+function serialRe(global){try{return new RegExp(DB.meta.serialRegex||'[A-Z]{2}\\d{10,}',global?'gi':'i')}catch(e){return new RegExp('[A-Z]{2}\\d{10,}',global?'gi':'i')}}
+function extractSerials(raw){const m=String(raw).match(serialRe(true))||[];return[...new Set(m.map(x=>x.toUpperCase()))]}
+function prefixItem(s){let best=null,bl=0;DB.items.forEach(i=>(i.serialPrefixes||[]).forEach(p=>{if(p&&s.startsWith(p.toUpperCase())&&p.length>bl){best=i;bl=p.length}}));return best}
+function modelHint(raw,serials){
+ const toks=String(raw).split(/[\s|,;]+/).map(t=>t.trim()).filter(t=>t&&!serials.includes(t.toUpperCase()));
+ for(const t of toks){const it=findItemByCode(t);if(it)return{item:it}}
+ const mt=toks.find(t=>/^[A-Z0-9]+(?:-[A-Z0-9]+)+$/i.test(t)&&t.length>=4&&t.length<=60&&/[A-Z]/i.test(t));
+ return mt?{newName:mt.toUpperCase()}:{};
+}
+function createItemQuick(name,extra){const it={id:uid('I'),name,alias:name,brand:'',code:'',group:'',unit:'Nos',active:true,serial:true,serialPrefixes:[],...(extra||{})};put('items',it);log('ITEM AUTO-CREATE',name,'');save(false);return it}
+
+/* ---------- SYNC ---------- */
+let syncT=null,syncing=false;
+function debSync(){clearTimeout(syncT);syncT=setTimeout(()=>syncNow(true),1500)}
+function setSync(t,c){const s=$('#syncSt');if(!s)return;s.textContent=t;s.className='sync '+(c||'')}
+const syncURL=()=>{if(ME&&!isAdmin()){const g=G(ME.godownId);if(g&&g.syncUrl)return g.syncUrl}return DB.meta.syncUrl};
+async function api(body){const r=await fetch(syncURL(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json()}
+async function syncNow(silent){
+ if(!syncURL()||!ME||syncing)return;syncing=true;setSync('⟳ Syncing…');
+ try{
+  const changes=Object.keys(DB.dirty).map(k=>{const[c,id]=k.split('|');const rec=(DB[c]||[]).find(r=>r.id===id);return rec?{coll:c,rec}:null}).filter(Boolean);
+  const since=DB.meta.lastSync[ME.username]||0;
+  const j=await api({action:'sync',user:ME.username,pass:ME.passHash,since,changes});
+  if(!j.ok){if(/login/i.test(j.error||'')){syncing=false;alert('Server login failed — your password was changed or the user is disabled. Please log in again.');return logout()}throw new Error(j.error||'Server error')}
+  changes.forEach(c=>{const k=c.coll+'|'+c.rec.id;if(DB.dirty[k]===c.rec.updatedAt)delete DB.dirty[k]});
+  let n=0;(j.records||[]).forEach(({coll,rec})=>{if(!DB[coll])return;const k=coll+'|'+rec.id;if(DB.dirty[k])return;const i=DB[coll].findIndex(r=>r.id===rec.id);
+   if(i<0){DB[coll].push(rec);n++}else if((rec.updatedAt||0)>=(DB[coll][i].updatedAt||0)){DB[coll][i]=rec;n++}});
+  if(!isAdmin())DB.users=DB.users.filter(u=>u.id===ME.id);
+  const me=DB.users.find(u=>u.id===ME.id);if(me){ME=me;sessionStorage.setItem('gsm_me',JSON.stringify(me))}
+  DB.meta.lastSync[ME.username]=j.serverTime;DB.meta.lastSyncAt=new Date().toLocaleString('en-IN');save(false);
+  setSync('✓ Synced '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),'ok');
+  if(!silent)toast('Sync complete: '+changes.length+' sent, '+n+' received'+(j.rejected&&j.rejected.length?', '+j.rejected.length+' rejected (no permission)':''));
+  if(n&&!CUR)render();
+ }catch(e){setSync('⚠ Sync failed','err');if(!silent)toast('Sync error: '+e.message,4000)}
+ syncing=false;
+}
+setInterval(()=>{if(ME&&DB.meta.syncUrl&&DB.meta.autoSync&&navigator.onLine)syncNow(true)},120000);
+
+/* ---------- AUTH ---------- */
+async function doLogin(){
+ const u=$('#lu').value.trim().toLowerCase(),p=$('#lp').value;$('#lerr').textContent='';
+ if(!u||!p){$('#lerr').textContent='Enter username and password';return}
+ const h=ph(p);let usr=DB.users.find(x=>x.username===u&&x.active!==false);
+ if(usr&&usr.passHash===h)return startApp(usr);
+ if(DB.meta.syncUrl){
+  $('#lerr').textContent='Checking with server…';
+  try{const j=await api({action:'login',user:u,pass:h});
+   if(j.ok&&j.user){const i=DB.users.findIndex(x=>x.id===j.user.id);if(i<0)DB.users.push(j.user);else DB.users[i]=j.user;save(false);$('#lerr').textContent='';return startApp(j.user)}
+  }catch(e){}
+ }
+ $('#lerr').textContent='Wrong username or password';
+}
+function startApp(u){
+ ME=u;if(u.role==='admin')runPreload();
+ if(u.role==='admin'&&DB.meta.syncUrl&&!DB.meta.firstPush){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)r.updatedAt=Date.now();DB.dirty[c+'|'+r.id]=r.updatedAt}));DB.meta.firstPush=true;save(false)}
+ ME=u;sessionStorage.setItem('gsm_me',JSON.stringify(u));
+ $('#login').style.display='none';$('#app').style.display='block';
+ $('#av').textContent=(u.name||u.username)[0].toUpperCase();$('#wn').textContent=u.name||u.username;
+ $('#wg').textContent=isAdmin()?'Admin — All Godowns':gN(u.godownId);
+ if(!isAdmin()&&!G(u.godownId))toast('No godown is assigned to this user — contact the admin',5000);
+ buildNav();go('dashboard');
+ if(DB.meta.syncUrl){setSync('Cloud on');syncNow(true)}else setSync('Offline mode');
+ if(isAdmin()&&ph('admin@123')===u.passHash)toast('⚠ Please change the default admin password (Settings → Change Password)',5000);
+}
+function logout(){ME=null;sessionStorage.removeItem('gsm_me');location.reload()}
+
+/* ---------- NAV ---------- */
+const NAV=[
+ ['Main',[['dashboard','📊','Dashboard'],['entry','➕','Stock Entry'],['vouchers','📒','Day Book / Vouchers'],['receive','📥','Pending Receipts'],['physical','🔍','Physical Verification']]],
+ ['Reports',[['r_summary','📦','Stock Summary'],['r_serial','🔢','Serial No. Register'],['r_ledger','📑','Product Stock Ledger'],['r_inward','⬇️','Inward (Purchase)'],['r_outward','⬆️','Outward (Sale)'],['r_srt','↩️','Sale Return'],['r_prt','↪️','Purchase Return'],['r_trf','🔁','Stock Transfer'],['r_dmg','⚠️','Damage / Shortage'],['r_party','👥','Party-wise Report'],['r_phy','🧮','Physical vs Book']]],
+ ['Control',[['tally','⚖️','Tally Stock Match','a'],['audit','🛡️','Audit Log','a'],['delmgr','✏️','Edit / Delete Manager']]],
+ ['Help',[['help','🛠️','Help & Support']]],
+ ['Masters',[['items','🏷️','Item Master'],['parties','🏢','Party Master'],['labels','▦','Barcode Labels'],['import','📂','Import / Export','a'],['users','🔐','Users & Godowns','a'],['settings','⚙️','Settings']]]
+];
+function buildNav(){
+ $('#side').innerHTML=`<div class="brand"><div class="lgm"><img src="${LOGO_MARK}" alt=""></div><div><b>${esc(DB.meta.company)}</b><small>Godown Stock Manager</small></div></div>`+
+ NAV.map(([g,list])=>{const l=list.filter(x=>x[3]!=='a'||isAdmin());if(!l.length)return'';return`<div class="navg"><div>${g}</div>${l.map(x=>`<div class="nv" data-v="${x[0]}"><i>${x[1]}</i>${x[2]}</div>`).join('')}</div>`}).join('');
+ $$('#side .nv').forEach(n=>n.onclick=()=>go(n.dataset.v));
+}
+function go(v,params){
+ if(CUR&&CUR.dirty&&!(v==='entry'&&!params)&&!confirm('This entry is not saved. Discard it?'))return;
+ VIEW=v;P=params||{};if(!(v==='entry'&&!params))CUR=null;render();$('#side').classList.remove('open');window.scrollTo(0,0);
+}
+function render(){
+ $$('.pk').forEach(e=>e.remove());
+ $$('#side .nv').forEach(n=>n.classList.toggle('on',n.dataset.v===VIEW));
+ const fn=V[VIEW]||V.dashboard;const el=$('#view');el.innerHTML='';fn(el);
+}
+function title(t){$('#ttl').textContent=t;document.title=t+' — Godown Stock Manager'}
+
+/* ---------- PICKER ---------- */
+function picker(inp,src,onPick){
+ const box=document.createElement('div');box.className='pk';document.body.appendChild(box);let L=[],ix=0;
+ const pos=()=>{const r=inp.getBoundingClientRect();box.style.left=(r.left+scrollX)+'px';box.style.top=(r.bottom+scrollY+2)+'px';box.style.width=Math.max(r.width,320)+'px'};
+ const draw=()=>{box.innerHTML=L.map((o,i)=>`<div class="pki ${i===ix?'on':''}" data-i="${i}"><b>${esc(o.label)}</b>${o.sub?`<small>${esc(o.sub)}</small>`:''}</div>`).join('')};
+ const show=()=>{L=src(inp.value.trim()).slice(0,50);ix=0;if(!L.length){box.style.display='none';return}pos();draw();box.style.display='block'};
+ const hide=()=>box.style.display='none';
+ const pick=o=>{hide();onPick(o)};
+ inp.addEventListener('focus',show);inp.addEventListener('input',show);
+ inp.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){const q=inp.value.trim().toLowerCase();const ex=L.find(o=>o.code&&o.code.toLowerCase()===q);if(ex){e.preventDefault();return pick(ex)}if(box.style.display==='block'&&L[ix]){e.preventDefault();pick(L[ix])}return}
+  if(box.style.display!=='block')return;
+  if(e.key==='ArrowDown'){ix=Math.min(ix+1,L.length-1);draw();e.preventDefault()}else if(e.key==='ArrowUp'){ix=Math.max(ix-1,0);draw();e.preventDefault()}else if(e.key==='Escape')hide()});
+ box.addEventListener('mousedown',e=>{const d=e.target.closest('.pki');if(d){e.preventDefault();pick(L[+d.dataset.i])}});
+ inp.addEventListener('blur',()=>setTimeout(hide,180));
+}
+const match=(q,...f)=>{q=(q||'').toLowerCase();return!q||f.some(x=>String(x||'').toLowerCase().includes(q))};
+function itemSrc(g,onlySerial){return q=>{let l=DB.items.filter(i=>!i.deleted&&i.active!==false&&(!onlySerial||i.serial)&&match(q,i.name,i.alias,i.code,i.group,i.brand));const ql=q.toLowerCase();
+ l.sort((a,b)=>((b.code||'').toLowerCase()===ql)-((a.code||'').toLowerCase()===ql)||((b.alias||'').toLowerCase()===ql)-((a.alias||'').toLowerCase()===ql)||a.name.localeCompare(b.name));
+ return l.map(i=>({id:i.id,label:i.name,code:i.code,sub:[bcat(i),i.code&&'Barcode: '+i.code,i.serial&&'Serial-tracked',g&&'Stock: '+fq(stockOf(i.id,g))].filter(Boolean).join('  |  ')}))}}
+function partySrc(type){return q=>DB.parties.filter(p=>!p.deleted&&match(q,p.name,p.alias,p.gstin,p.phone)).filter(p=>!type||!p.type||p.type==='Both'||p.type===type).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({id:p.id,label:p.name,sub:[p.alias&&'Alias: '+p.alias,p.gstin,p.city].filter(Boolean).join('  |  ')}))}
+function findItemByCode(c){c=String(c).trim().toLowerCase();if(!c)return null;const L=DB.items.filter(i=>!i.deleted);return L.find(i=>(i.code||'').toLowerCase()===c)||L.find(i=>(i.alias||'').toLowerCase()===c)||L.find(i=>i.name.toLowerCase()===c)}
+
+/* ---------- MODAL ---------- */
+function modal(html,wide){const m=document.createElement('div');m.className='modal';m.innerHTML=`<div class="mbox" style="${wide?'width:min(1100px,100%)':''}"><button class="x">×</button>${html}</div>`;document.body.appendChild(m);
+ const close=()=>{if(m._closed)return;m._closed=true;if(m._onclose)m._onclose();m.remove()};m.querySelector('.x').onclick=close;m.addEventListener('mousedown',e=>{if(e.target===m)close()});m.close=close;return m}
+
+/* ---------- CAMERA SCANNER (QR + barcode, single or continuous) ---------- */
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`)&&(window.XLSX||window.Html5Qrcode))return res();const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Could not load library (internet needed)'));document.head.appendChild(s)})}
+async function scanner(onCode,cont){
+ const m=modal(`<h3 style="margin-top:0">📷 Scan QR / Barcode ${cont?'<span class="tag ok">Continuous mode</span>':''}</h3><p class="mut" style="margin-top:-6px">Hold the camera over the QR / barcode. ${cont?'Keep scanning one after another — close this window when done.':''} A USB / Bluetooth scanner can scan directly into the scan box.</p>
+ <div id="reader"><video id="scv" playsinline muted></video></div><div class="row" style="margin-top:12px"><div class="f"><input id="scm" placeholder="Or type the code and press Enter"></div></div>
+ <div id="scmsg" style="margin-top:8px;font-weight:600"></div><div id="sccnt" class="mut" style="font-size:12px"></div>`);
+ let stream=null,stop=false,h5=null,last='',lastT=0,cnt=0;
+ const msg=(t,ok)=>{const e=m.querySelector('#scmsg');if(e){e.textContent=t;e.style.color=ok===false?'var(--bad)':ok?'var(--ok)':''}};
+ const done=async c=>{c=String(c).trim();const now=Date.now();if(stop||!c||(c===last&&now-lastT<2500))return;last=c;lastT=now;
+  if(!cont){stop=true;m.close()}
+  const r=await onCode(c);if(r&&cont){beep(r.ok);msg(r.msg,!!r.ok);if(r.ok)cnt++;const cc=m.querySelector('#sccnt');if(cc)cc.textContent='Successful scans in this session: '+cnt}};
+ m._onclose=()=>{stop=true;if(stream)stream.getTracks().forEach(t=>t.stop());if(h5)h5.stop().catch(()=>{})};
+ m.querySelector('#scm').onkeydown=e=>{if(e.key==='Enter'&&e.target.value.trim()){done(e.target.value);e.target.value=''}};
+ try{
+  if('BarcodeDetector' in window){
+   const det=new BarcodeDetector();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280}}});
+   const v=m.querySelector('#scv');v.srcObject=stream;await v.play();msg('Scanning…');
+   const loop=async()=>{if(stop)return;try{const r=await det.detect(v);if(r.length)await done(r[0].rawValue)}catch(e){}setTimeout(loop,120)};loop();
+  }else{
+   msg('Loading scanner…');await loadScript('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+   m.querySelector('#reader').innerHTML='';h5=new Html5Qrcode('reader');
+   await h5.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:200}},t=>done(t));msg('Scanning…');
+  }
+ }catch(e){msg('Camera could not start ('+e.message+'). Type the code manually.',false)}
+}
+
+/* ---------- CODE128 ---------- */
+const C128='212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112'.split(' ');
+function barcodeSVG(text,h){h=h||40;const c=[104];for(const ch of String(text)){let v=ch.charCodeAt(0)-32;if(v<0||v>94)v=0;c.push(v)}let s=104;for(let i=1;i<c.length;i++)s+=c[i]*i;c.push(s%103,106);
+ let x=10,r='';c.forEach(v=>{const p=C128[v];for(let k=0;k<p.length;k++){const w=+p[k];if(k%2===0)r+=`<rect x="${x}" y="0" width="${w}" height="${h}"/>`;x+=w}});x+=10;
+ return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x} ${h}" preserveAspectRatio="none" fill="#000">${r}</svg>`}
+
+/* ---------- TABLE / EXPORT / PRINT ---------- */
+function table(cols,rows){
+ if(!rows.length)return`<div class="empty">No records found</div>`;
+ const tot={};cols.forEach(c=>{if(c.t)tot[c.k]=rows.reduce((a,r)=>a+(+r[c.k]||0),0)});
+ return`<div class="tw"><table><thead><tr>${cols.map(c=>`<th class="${c.n?'n':''}">${esc(c.l)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr ${r._click?`style="cursor:pointer" onclick="${r._click}"`:''}>${cols.map(c=>{const v=r[c.k];const h=c.f?c.f(v,r):(c.n?(c.m?fm(v):fq(v)):esc(v));return`<td class="${c.n?'n':''}">${h}</td>`}).join('')}</tr>`).join('')}</tbody>${Object.keys(tot).length?`<tfoot><tr>${cols.map((c,i)=>`<td class="${c.n?'n':''}">${i===0?'TOTAL ('+rows.length+')':(c.t?(c.m?fm(tot[c.k]):fq(tot[c.k])):'')}</td>`).join('')}</tr></tfoot>`:''}</table></div>`}
+const XLSXURL='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+async function exportXL(name,cols,rows,sheet){
+ const aoa=[cols.map(c=>c.l),...rows.map(r=>cols.map(c=>{const v=r[c.k];return c.n?(+v||0):(c.x?c.x(v,r):(v??''))}))];
+ try{await loadScript(XLSXURL);const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=cols.map(c=>({wch:Math.max(10,c.l.length+2)}));XLSX.utils.book_append_sheet(wb,ws,(sheet||'Report').replace(/[\\\/\?\*\[\]:]/g,' ').slice(0,30));XLSX.writeFile(wb,name+'.xlsx')}
+ catch(e){const csv=aoa.map(r=>r.map(v=>{v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')).join('\n');dl(name+'.csv','﻿'+csv,'text/csv');toast('Offline — downloaded as CSV (opens in Excel)')}
+}
+function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function printHTML(h){$('#printArea').innerHTML=h;setTimeout(()=>window.print(),100)}
+function printReport(){if(!REPORT)return;printHTML(`<img src="${LOGO_FULL}" style="height:36px;float:right"><h2 style="margin:0">${esc(DB.meta.company)}</h2><h3 style="margin:4px 0">${esc(REPORT.title)}</h3><div style="font-size:12px;margin-bottom:8px">${esc(REPORT.sub||'')} &nbsp; Printed: ${new Date().toLocaleString('en-IN')} by ${esc(ME.username)}</div>`+table(REPORT.cols,REPORT.rows).replace('class="tw"',''))}
+async function readFileTable(f){
+ const ext=f.name.split('.').pop().toLowerCase();
+ if(ext==='csv'||ext==='txt')return parseCSV(await f.text());
+ await loadScript(XLSXURL);const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''});
+}
+function parseCSV(t){const sep=t.split('\n')[0].includes('\t')?'\t':',';const rows=[];let row=[],cur='',q=false;
+ for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}else if(c==='"')q=true;else if(c===sep){row.push(cur);cur=''}else if(c==='\n'){row.push(cur.replace(/\r$/,''));rows.push(row);row=[];cur=''}else cur+=c}
+ if(cur||row.length){row.push(cur);rows.push(row)}return rows.filter(r=>r.some(x=>String(x).trim()))}
+
+/* ---------- FILTER BAR ---------- */
+function gOpts(all,sel){const gs=isAdmin()?DB.godowns.filter(g=>g.active!==false):DB.godowns.filter(g=>g.id===ME.godownId);return(all&&isAdmin()?`<option value="ALL">— All Godowns —</option>`:'')+gs.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.name)}</option>`).join('')}
+function filterBar(o){
+ return`<div class="card"><div class="row">
+ ${o.g!==false?`<div class="f"><label>Godown</label><select id="fg" ${isAdmin()?'':'disabled'}>${gOpts(o.gAll!==false,P.fg||(isAdmin()?'ALL':ME.godownId))}</select></div>`:''}
+ ${o.d!==false?`<div class="f" style="max-width:160px"><label>From</label><input type="date" id="ff" value="${P.ff||fyStart()}"></div><div class="f" style="max-width:160px"><label>To</label><input type="date" id="ft" value="${P.ft||today()}"></div>`:''}
+ ${o.item?`<div class="f"><label>Item ${o.item===2?'<span class="rq">*</span>':''}</label><input id="fi" placeholder="Name / alias / barcode" value="${esc(P.fiN||'')}"></div>`:''}
+ ${o.party?`<div class="f"><label>Party ${o.party===2?'<span class="rq">*</span>':''}</label><input id="fp" placeholder="Party name / alias" value="${esc(P.fpN||'')}"></div>`:''}
+ ${o.extra||''}
+ ${o.q!==false?`<div class="f"><label>Search</label><input id="fq" placeholder="Invoice / DC / vehicle / item / serial…" value="${esc(P.fq||'')}"></div>`:''}
+ <div class="btns"><button class="btn p" id="fgo">Show</button>${o.item?'<button class="btn" id="fscan" title="Scan">📷</button>':''}<button class="btn" id="fxl">⬇ Excel</button><button class="btn" id="fpr">🖨 Print</button></div>
+ </div></div><div id="rout"></div>`}
+function bindFilter(run){
+ const rd=()=>{P.fg=$('#fg')?$('#fg').value:'';P.ff=$('#ff')?$('#ff').value:'';P.ft=$('#ft')?$('#ft').value:'';P.fq=$('#fq')?$('#fq').value.trim():''};
+ if($('#fi')){picker($('#fi'),itemSrc(),o=>{P.fi=o.id;P.fiN=o.label;rd();run()});$('#fi').addEventListener('input',e=>{if(!e.target.value){P.fi='';P.fiN=''}})}
+ if($('#fscan'))$('#fscan').onclick=()=>scanner(c=>{let it=findItemByCode(c);if(!it){const s=extractSerials(c)[0];const r=s&&serialIndex()[s];if(r)it=I(r.itemId)}if(!it)return toast('Item not found: '+c);P.fi=it.id;P.fiN=it.name;$('#fi').value=it.name;rd();run()});
+ if($('#fp')){picker($('#fp'),partySrc(),o=>{P.fp=o.id;P.fpN=o.label;rd();run()});$('#fp').addEventListener('input',e=>{if(!e.target.value){P.fp='';P.fpN=''}})}
+ $('#fgo').onclick=()=>{rd();run()};
+ if($('#fq'))$('#fq').onkeydown=e=>{if(e.key==='Enter'){rd();run()}};
+ $('#fxl').onclick=()=>REPORT&&exportXL(REPORT.title.replace(/[^\w]+/g,'_')+'_'+today(),REPORT.cols,REPORT.rows,REPORT.title);
+ $('#fpr').onclick=printReport;rd();run();
+}
+const fGs=()=>(!P.fg||P.fg==='ALL')?myG():[P.fg];
+const gLabel=()=>(!P.fg||P.fg==='ALL')?(isAdmin()?'All Godowns':gN(ME.godownId)):gN(P.fg);
+
+/* =====================================================================
+   VIEWS
+   ===================================================================== */
+const V={};
+
+/* ---------- DASHBOARD ---------- */
+V.dashboard=el=>{
+ title('Dashboard');const gs=myG(),t=today(),mStart=t.slice(0,8)+'01';
+ const sAll=summary(gs,mStart,t,true);const by=g=>sAll.filter(r=>r.godownId===g);const sum=(a,k)=>a.reduce((x,r)=>x+r[k],0);
+ const avail=sum(sAll,'cl');
+ const tv=visV().filter(v=>v.date===t);const lq=v=>v.lines.reduce((b,l)=>b+num(l.qty),0);
+ const tin=tv.filter(v=>['PUR','SRT'].includes(v.type)).reduce((a,v)=>a+lq(v),0);
+ const tout=tv.filter(v=>['SAL','PRT','DMG'].includes(v.type)).reduce((a,v)=>a+lq(v),0);
+ const pend=DB.vouchers.filter(v=>!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&gs.includes(v.toGodownId));
+ const neg=sAll.filter(r=>r.cl<0);
+ const SI=Object.values(serialIndex());const sIn=SI.filter(r=>r.status==='In Stock'&&gs.includes(r.g)).length;
+ const draft=loadDraft();
+ el.innerHTML=`
+ ${!DB.items.length?`<div class="hint"><b>Getting started:</b> just press <b>Scan Stock IN</b> and scan your panels — new products are created on the first scan. Or add products in <a href="#" onclick="go('items');return false">Item Master</a> / <a href="#" onclick="go('import');return false">import from Excel</a>. ${isAdmin()?`&nbsp; <a href="#" onclick="demoData();return false">▶ Load demo data to explore</a>`:''}</div>`:''}
+ ${draft?`<div class="warnbox">📝 You have an unsaved <b>${T[draft.v.type].n}</b> draft (${fq(vTotals(draft.v).qty)} qty scanned). <a href="#" onclick="go('entry',{type:'${draft.v.type}'});return false">Continue scanning →</a></div>`:''}
+ ${pend.length?`<div class="warnbox">📥 <b>${pend.length} stock transfer(s)</b> are waiting to be received at your godown. <a href="#" onclick="go('receive');return false">Receive now →</a></div>`:''}
+ ${neg.length?`<div class="warnbox" style="background:#fdecec;border-color:#f3c0c0;color:#8a1c1c">⛔ <b>${neg.length} product(s)</b> have NEGATIVE stock — wrong entry or missing inward. <a href="#" onclick="go('r_summary');return false">Check now →</a></div>`:''}
+ <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:16px">
+  <button class="tb" style="--c:#15803d;padding:18px 20px" onclick="go('entry',{type:'PUR'})"><b style="font-size:18px">📥 Scan Stock IN</b><small>Purchase / goods received — scan each panel QR or barcode</small></button>
+  <button class="tb" style="--c:#c62828;padding:18px 20px" onclick="go('entry',{type:'SAL'})"><b style="font-size:18px">📤 Scan Stock OUT</b><small>Sale / dispatch — scan each panel going out</small></button>
+  <button class="tb" style="--c:#163351;padding:18px 20px" onclick="go('r_summary',{fvw:'s'})"><b style="font-size:18px">🔢 Panels in Stock</b><small>Every panel serial / barcode-wise, godown-wise — Excel too</small></button>
+  <button class="tb" style="--c:#7c3aed;padding:18px 20px" onclick="go('entry',{type:'TRF'})"><b style="font-size:18px">🔁 Scan Transfer</b><small>Send stock to another godown</small></button>
+ </div>
+ <div class="grid kpis" style="margin-bottom:16px">
+  <div class="kpi" style="--c:#0e95a2"><small>Available Stock (Qty)</small><b>${fq(avail)}</b><span>${DB.items.length} products • ${gs.length} godown(s)</span></div>
+  <div class="kpi" style="--c:#163351"><small>Serial Nos. In Stock</small><b>${fq(sIn)}</b><span>Unique panels / units</span></div>
+  <div class="kpi" style="--c:#15803d"><small>Today IN</small><b>${fq(tin)}</b><span>Purchase + Sale Return</span></div>
+  <div class="kpi" style="--c:#c62828"><small>Today OUT</small><b>${fq(tout)}</b><span>Sale + P. Return + Damage</span></div>
+  <div class="kpi" style="--c:#7c3aed"><small>Pending Receipts</small><b>${pend.length}</b><span>Transfers in transit</span></div>
+ </div>
+ <div class="split">
+  <div>
+   <div class="card"><h3>🏬 Godown-wise Position <span class="mut" style="font-weight:400;font-size:12px">(this month, from ${dmy(mStart)})</span></h3>
+   ${table([{k:'g',l:'Godown'},{k:'op',l:'Opening',n:1,t:1},{k:'tIn',l:'IN',n:1,t:1},{k:'tOut',l:'OUT',n:1,t:1},{k:'srt',l:'Sale Return',n:1,t:1},{k:'cl',l:'Available',n:1,t:1,f:v=>`<b class="${v<0?'neg':''}">${fq(v)}</b>`},{k:'transit',l:'In Transit',n:1,t:1}],
+    gs.map(g=>{const a=by(g);return{g:gN(g),op:sum(a,'op'),tIn:sum(a,'tIn'),tOut:sum(a,'tOut'),srt:sum(a,'srt'),cl:sum(a,'cl'),transit:sum(a,'transit'),_click:`go('r_summary',{fg:'${g}'})`}}))}</div>
+   <div class="card"><h3>🕒 Recent Entries</h3>${table([{k:'date',l:'Date'},{k:'type',l:'Type',f:v=>`<span class="bdg" style="--c:${T[v].c}">${T[v].s}</span>`},{k:'vno',l:'Voucher No.'},{k:'ref',l:'Invoice / Ref'},{k:'g',l:'Godown'},{k:'p',l:'Party / To'},{k:'q',l:'Qty',n:1},{k:'by',l:'By'}],
+    visV().filter(v=>v.type!=='PHY').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,10).map(v=>({date:dmy(v.date),type:v.type,vno:v.vno,ref:v.refNo||'',g:gN(v.godownId),p:v.type==='TRF'?'→ '+gN(v.toGodownId):pN(v.partyId),q:lq(v),by:v.createdBy,_click:`viewV('${v.id}')`})))}</div>
+  </div>
+  <div>
+   <div class="card"><h3>🔎 Quick Check (product or serial)</h3><div class="row"><div class="f"><input id="qs" placeholder="Product / brand / barcode / serial no."></div><button class="btn" id="qsc">📷</button></div><div id="qso" style="margin-top:10px"></div></div>
+   <div class="card"><h3>⚡ Other Entries</h3><div class="btns" style="flex-direction:column">
+    ${['SRT','PRT','DMG'].concat(isAdmin()?['OPN']:[]).map(t=>`<button class="btn" style="justify-content:flex-start;border-left:4px solid ${T[t].c}" onclick="go('entry',{type:'${t}'})">${T[t].n}</button>`).join('')}<button class="btn" style="justify-content:flex-start;border-left:4px solid #475569" onclick="go('physical')">Physical Verification</button></div></div>
+  </div>
+ </div>`;
+ const qs=it=>{$('#qso').innerHTML=`<b>${esc(it.name)}</b> <span class="mut">${esc(bcat(it))} ${esc(it.code||'')}</span>`+table([{k:'g',l:'Godown'},{k:'q',l:'Available',n:1}],gs.map(g=>({g:gN(g),q:stockOf(it.id,g)})).concat([{g:'TOTAL',q:gs.reduce((a,g)=>a+stockOf(it.id,g),0)}]))};
+ const qsAny=c=>{const it=findItemByCode(c);if(it)return qs(it);const s=extractSerials(c)[0];if(s){const r=serialIndex()[s];if(r&&(isAdmin()||r.hist.some(v=>v.godownId===ME.godownId||v.toGodownId===ME.godownId)))return serialCard(s);return toast('Serial not found: '+s)}toast('Not found: '+c)};
+ picker($('#qs'),itemSrc(),o=>qs(I(o.id)));
+ $('#qs').addEventListener('keydown',e=>{if(e.key==='Enter'&&extractSerials(e.target.value).length)qsAny(e.target.value)});
+ $('#qsc').onclick=()=>scanner(qsAny);
+};
+
+/* ---------- STOCK ENTRY (scan-first, serial / barcode wise) ---------- */
+function nextVno(type,g){const code=(G(g)||{}).code||'GEN';const pre=type+'/'+code+'/';let mx=0;DB.vouchers.forEach(v=>{if(v.vno&&v.vno.startsWith(pre)){const n=parseInt(v.vno.slice(pre.length));if(n>mx)mx=n}});return pre+String(mx+1).padStart(4,'0')}
+const blankLine=()=>({itemId:'',qty:'',batch:'',serials:[]});
+function newLineFor(it){return{itemId:it.id,qty:0,batch:'',serials:[]}}
+function newDraft(type,g){const v={id:'',type,date:today(),godownId:g,vno:nextVno(type,g),lines:[blankLine()]};if(['PUR','SAL','SRT','PRT'].includes(type))v.invDate=today();return{dirty:false,v,pallet:''}}
+const DKEY=()=>'gsm_draft_'+(ME?ME.username:'');
+function saveDraft(){try{if(CUR&&CUR.dirty&&!CUR.v.id)localStorage.setItem(DKEY(),JSON.stringify({v:CUR.v,pallet:CUR.pallet}))}catch(e){}}
+function clearDraft(){try{localStorage.removeItem(DKEY())}catch(e){}}
+function loadDraft(type){try{const d=JSON.parse(localStorage.getItem(DKEY()));if(d&&d.v&&(!type||d.v.type===type))return d}catch(e){}return null}
+V.entry=el=>{
+ if(!CUR){const d=loadDraft(P.type);if(d){CUR={dirty:true,v:d.v,pallet:d.pallet||''};toast('Unsaved draft restored ('+d.v.lines.filter(l=>l.itemId).length+' product lines)',3500)}}
+ if(!CUR&&!P.type){title('Stock Entry');el.innerHTML=`<div class="card"><h3>Select entry type</h3><div class="tbtn">${Object.keys(T).filter(t=>t!=='PHY'&&(t!=='OPN'||isAdmin())).map(t=>`<button class="tb" style="--c:${T[t].c}" onclick="go('entry',{type:'${t}'})"><b>${T[t].n}</b><small>${T[t].d}</small></button>`).join('')}</div></div>`;return}
+ if(!CUR)CUR=newDraft(P.type,isAdmin()?(P.g||DB.godowns[0].id):ME.godownId);
+ const v=CUR.v,t=T[v.type],isOut=OUTT.includes(v.type),isIn=['PUR','OPN'].includes(v.type);
+ title((v.id?'Edit: ':'New: ')+t.n);
+ const fld=f=>{const[k,l,ty,rq]=f;const L=`<label>${l}${rq?' <span class="rq">*</span>':''}</label>`;
+  if(ty==='party')return`<div class="f" style="flex:2;min-width:240px">${L}<div style="display:flex;gap:6px"><input id="e_${k}" value="${esc(pN(v.partyId))}" placeholder="Search party / GSTIN"><button class="btn sm" type="button" onclick="quickParty()" title="New party">＋</button></div><div class="party" id="pinfo"></div></div>`;
+  if(ty==='godown')return`<div class="f">${L}<select id="e_${k}"><option value="">-- Select --</option>${DB.godowns.filter(g=>g.active!==false&&g.id!==v.godownId).map(g=>`<option value="${g.id}" ${v[k]===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}</select></div>`;
+  if(ty.startsWith('select:'))return`<div class="f">${L}<select id="e_${k}">${ty.slice(7).split(',').map(o=>`<option ${v[k]===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+  return`<div class="f">${L}<input id="e_${k}" type="${ty}" value="${esc(v[k]||'')}"></div>`};
+ const nc=isOut?5:4;
+ el.innerHTML=`
+ ${!v.id?`<div class="seg">${Object.keys(T).filter(x=>x!=='PHY'&&(x!=='OPN'||isAdmin())).map(x=>`<button class="${x===v.type?'on':''}" style="--c:${T[x].c}" data-t="${x}">${T[x].s}</button>`).join('')}</div>`:''}
+ <div class="card" style="border-top:4px solid ${t.c}">
+  <h3><span class="bdg" style="--c:${t.c}">${t.n}</span> <span class="mut" style="font-weight:400;font-size:12.5px">${t.d}</span></h3>
+  <div class="row" style="margin-bottom:12px">
+   <div class="f" style="max-width:180px"><label>Voucher No.</label><input id="e_vno" value="${esc(v.vno)}" readonly></div>
+   <div class="f" style="max-width:170px"><label>Date <span class="rq">*</span></label><input type="date" id="e_date" value="${v.date}" ${isAdmin()?'':`max="${today()}"`}></div>
+   <div class="f"><label>${v.type==='TRF'?'From Godown':'Godown'} <span class="rq">*</span></label><select id="e_g" ${isAdmin()&&!v.id?'':'disabled'}>${gOpts(false,v.godownId)}</select></div>
+  </div>
+  <div class="row">${(FIELDS[v.type]||[]).map(fld).join('')}</div>
+ </div>
+ <div class="card" style="border:2px solid #9fc0ef"><h3>▦ Scan Panels / Products <span class="mut" style="font-weight:400;font-size:12px">— scan the QR / serial no. or product barcode with phone camera or scanner machine. Every scan = +1 qty, added to the right product automatically.</span></h3>
+  <div class="scanbar"><input class="big" id="scanbox" placeholder="Scanner machine: click here and scan  •  or type serial no. + Enter" autocomplete="off">
+   <button class="btn p" id="camscan" style="font-size:15px">📷 Scan with Phone Camera</button><button class="btn" id="pastes">📋 Paste Serial List</button>
+   ${isIn?`<div class="f" style="max-width:200px;min-width:150px"><label>Pallet / Box No. (optional)</label><input id="e_pal" value="${esc(CUR.pallet)}" placeholder="e.g. 1001648403"></div>`:''}</div>
+  <div class="row" style="margin-top:10px;align-items:center"><div class="scanlog" id="slog" style="flex:1"></div><div style="font-size:13px">Scanned: <b id="scnt" style="font-size:22px;color:var(--acc)">0</b></div></div>
+ </div>
+ <div class="card"><h3>Products</h3>
+  <div class="tw" style="max-height:none"><table class="lines"><thead><tr><th>#</th><th style="min-width:260px">Product</th><th class="n">Qty</th>${isOut?'<th class="n">Available</th>':''}<th></th></tr></thead><tbody id="lb"></tbody></table></div>
+  <div class="row" style="margin-top:10px;align-items:flex-start">
+   <div style="flex:1;min-width:260px"><button class="btn sm" id="addl">＋ Add product manually</button>
+    <div class="f" style="margin-top:12px"><label>Remarks</label><textarea id="e_narr" rows="2">${esc(v.narration||'')}</textarea></div></div>
+   <div style="flex:1;min-width:260px"><div class="tot" id="totbox"></div></div>
+  </div>
+  <div class="btns" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="ecancel">Cancel</button><button class="btn p" id="esave">💾 Save Entry (Ctrl+S)</button></div>
+ </div>`;
+ const mark=()=>{CUR.dirty=true;saveDraft()};
+ $$('.seg button').forEach(b=>b.onclick=()=>{if(b.dataset.t===v.type)return;if(CUR.dirty&&!confirm('Switch type? Unsaved lines will be cleared.'))return;clearDraft();CUR=null;P={type:b.dataset.t};render()});
+ $('#e_date').onchange=e=>{v.date=e.target.value;mark()};
+ $('#e_g').onchange=e=>{v.godownId=e.target.value;v.vno=nextVno(v.type,v.godownId);render()};
+ const pinfo=()=>{const p=Pt(v.partyId),e=$('#pinfo');if(!e)return;e.innerHTML=p?`${p.gstin?'GSTIN: <b>'+esc(p.gstin)+'</b> • ':''}${esc(STATES[partyState(p)]||'')} ${p.city?'• '+esc(p.city):''}`:''};
+ (FIELDS[v.type]||[]).forEach(([k,,ty])=>{const x=$('#e_'+k);if(ty==='party')picker(x,partySrc(['PUR','PRT'].includes(v.type)?'Supplier':'Customer'),o=>{v.partyId=o.id;x.value=o.label;mark();pinfo()});else x.onchange=x.oninput=e=>{v[k]=e.target.value;mark()}});
+ pinfo();
+ if($('#e_pal'))$('#e_pal').oninput=e=>{CUR.pallet=e.target.value.trim();saveDraft()};
+ $('#e_narr').oninput=e=>{v.narration=e.target.value;mark()};
+ const lineHTML=(l,i)=>{const it=I(l.itemId)||{};const avl=isOut&&l.itemId?stockOf(l.itemId,v.godownId,v.id):'';const sc=(l.serials||[]).length;
+  return`<tr data-i="${i}"><td class="mut">${i+1}</td><td><input class="li" value="${esc(it.name||'')}" placeholder="Search product / brand / barcode…"><div class="sub">${esc(bcat(it))}${bcat(it)?' • ':''}${it.serial?`<button class="sbtn ${(isOut&&(sc!==num(l.qty)||!sc))||(!isOut&&sc<num(l.qty))?'bad':''} sx">🔢 ${isOut?sc+' serial'+(sc===1?'':'s'):sc+' of '+fq(l.qty)+' serials'} ${l._open?'▴':'▾'}</button>${!isOut&&sc<num(l.qty)?' <span class="mut">('+fq(num(l.qty)-sc)+' serials can be scanned later)</span>':''}`:(l.itemId?`Batch: <input class="lbt" value="${esc(l.batch||'')}" style="width:120px;padding:2px 5px;font-size:11px">`:'')}</div></td>
+  <td><input class="lq" type="number" step="any" min="0" value="${esc(l.qty)}" style="width:90px;text-align:right;font-weight:700" ${it.serial&&isOut?'readonly title="Qty = number of serials scanned"':''}></td>${isOut?`<td class="n ${avl!==''&&avl<num(l.qty)?'neg':'mut'}">${avl===''?'':fq(avl)}</td>`:''}<td><button class="btn sm d lx">✕</button></td></tr>
+  ${it.serial&&l._open?`<tr class="srow"><td></td><td colspan="${nc-1}"><div class="chips">${(l.serials||[]).map((o,j)=>`<span class="chip">${esc(o.s)}${o.p?' <span class="mut">['+esc(o.p)+']</span>':''}<b data-j="${j}" title="Remove">×</b></span>`).join('')||'<span class="mut">No serials yet — scan above</span>'}</div></td></tr>`:''}`};
+ const tot=()=>{const T2=vTotals(v);$('#totbox').innerHTML=`<div><span>Products</span><b>${v.lines.filter(l=>l.itemId).length}</b></div><div><span>Serial nos. scanned</span><b>${fq(T2.serials)}</b></div><div class="gt"><span>Total Qty</span><span>${fq(T2.qty)}</span></div>`;const c=$('#scnt');if(c)c.textContent=fq(T2.qty)};
+ const drawL=()=>{$$('.pk').forEach(e=>e.remove());if(!v.lines.length||v.lines[v.lines.length-1].itemId)v.lines.push(blankLine());$('#lb').innerHTML=v.lines.map(lineHTML).join('');
+  $$('#lb tr[data-i]').forEach(tr=>{const i=+tr.dataset.i,l=v.lines[i];const q=s=>tr.querySelector(s);
+   picker(q('.li'),itemSrc(v.godownId),o=>{const it=I(o.id);if(l.itemId!==o.id){l.itemId=o.id;l.serials=[];l.qty=it.serial&&isOut?0:(num(l.qty)||1)}mark();drawL();if(!it.serial){const r=$$('#lb tr[data-i]')[i];if(r)r.querySelector('.lq').select()}else{l._open=true;drawL();$('#scanbox').focus()}});
+   q('.lq').oninput=e=>{l.qty=e.target.value;tot();mark()};
+   if(q('.lbt'))q('.lbt').oninput=e=>{l.batch=e.target.value;mark()};
+   if(q('.sx'))q('.sx').onclick=()=>{l._open=!l._open;drawL()};
+   q('.lx').onclick=()=>{if((l.serials||[]).length&&!confirm('Remove this product with '+l.serials.length+' serials?'))return;v.lines.splice(i,1);mark();drawL()};
+   const sr=tr.nextElementSibling;if(sr&&sr.classList.contains('srow'))sr.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{l.serials.splice(+b.dataset.j,1);if(isOut||num(l.qty)===l.serials.length+1)l.qty=l.serials.length;mark();drawL()});
+  });tot();saveDraft();
+ };
+ CUR.redraw=drawL;drawL();
+ const slog=r=>{beep(r.ok);const e=$('#slog');if(e)e.innerHTML=`<span class="${r.ok?'pos':'neg'}" style="font-size:14px">${r.ok?'✓':'✕'} ${esc(r.msg)}</span>`};
+ $('#scanbox').onkeydown=async e=>{if(e.key==='Enter'){e.preventDefault();const c=e.target.value.trim();e.target.value='';if(c){const r=await entryScan(c);slog(r)}}};
+ $('#camscan').onclick=()=>scanner(async c=>{const r=await entryScan(c);slog(r);return r},true);
+ $('#pastes').onclick=()=>pasteSerials();
+ $('#addl').onclick=()=>{v.lines.push(blankLine());drawL()};
+ $('#ecancel').onclick=()=>{if(CUR.dirty&&!confirm('Discard this entry?'))return;clearDraft();CUR=null;go('vouchers')};
+ $('#esave').onclick=saveEntry;
+ if(!v.id)setTimeout(()=>{const s=$('#scanbox');if(s&&!(FIELDS[v.type]||[]).some(f=>f[3]&&!v[f[0]]))s.focus()},60);
+};
+/* scan routing: product barcode → +1 qty ; serial(s) → right product line ; pallet no → bulk */
+async function entryScan(raw){
+ const v=CUR.v;raw=String(raw||'').trim();if(!raw)return{ok:0,msg:'Empty scan'};
+ const isOut=OUTT.includes(v.type),isIn=['PUR','OPN'].includes(v.type);
+ const it=findItemByCode(raw);
+ if(it){if(it.serial)return{ok:0,msg:it.name+' is serial-tracked — scan the serial no. QR instead'};
+  let l=v.lines.find(x=>x.itemId===it.id&&!x.batch);if(!l){l=newLineFor(it);insertLine(l)}l.qty=num(l.qty)+1;CUR.dirty=true;CUR.redraw();return{ok:1,msg:it.name+' — Qty '+fq(l.qty)}}
+ const idx=serialIndex(v.id);const ser=extractSerials(raw);
+ if(!ser.length){
+  const pal=Object.values(idx).filter(r=>r.pallet&&r.pallet.toLowerCase()===raw.toLowerCase());
+  if(pal.length&&isOut){const av=pal.filter(r=>r.status==='In Stock'&&r.g===v.godownId);let n=0;for(const r of av){const x=await addSerial(r.s,idx,{});if(x.ok)n++}CUR.redraw();return{ok:n>0,msg:`Pallet ${raw}: ${n} serial(s) added`+(pal.length-av.length?` (${pal.length-av.length} not in stock here)`:'')}}
+  if(isIn){const id=await askItem(null,raw);
+   if(id==='PALLET'){CUR.pallet=raw;const p=$('#e_pal');if(p)p.value=raw;saveDraft();return{ok:1,msg:'Pallet / Box No. set to '+raw+' — now scan its serials'}}
+   if(id){const x=I(id);let l=v.lines.find(y=>y.itemId===id&&!y.batch);if(!l){l=newLineFor(x);insertLine(l)}l.qty=num(l.qty)+1;CUR.dirty=true;CUR.redraw();return{ok:1,msg:'New barcode saved for '+x.name+' — Qty '+fq(l.qty)}}return{ok:0,msg:'Skipped: '+raw}}
+  return{ok:0,msg:'Not found: '+raw+' (no product barcode / serial no. matched)'};
+ }
+ const hint=modelHint(raw,ser);let n=0,errs=[];
+ for(const s of ser){const r=await addSerial(s,idx,hint);if(r.ok)n++;else errs.push(r.msg)}
+ CUR.redraw();
+ if(ser.length===1)return n?{ok:1,msg:ser[0]+' added → '+(I(lineOfSerial(ser[0]).itemId)||{}).name}:{ok:0,msg:errs[0]};
+ return{ok:n>0,msg:`${n} of ${ser.length} serials added`+(errs.length?' • '+errs.length+' rejected: '+errs.slice(0,3).join(' | '):'')};
+}
+/* stock received without serials (e.g. from supplier invoice) — serials are attached when the panel is scanned out */
+function pendingBal(itemId,g,idx,exV){const sIn=Object.values(idx).filter(r=>r.itemId===itemId&&r.status==='In Stock'&&r.g===g).length;return stockOf(itemId,g,exV)-sIn}
+function pendingItemFor(s,hint,v,idx){
+ const used=id=>v.lines.filter(l=>l.itemId===id).reduce((a,l)=>a+(l.serials||[]).filter(o=>!idx[o.s]).length,0);
+ const free=id=>pendingBal(id,v.godownId,idx,v.id)-used(id);
+ let it=prefixItem(s)||(hint.item&&hint.item.serial?hint.item:null);
+ if(!it){const c=DB.items.filter(i=>i.serial&&free(i.id)>0);if(c.length===1)it=c[0];else if(c.length>1)return{msg:`${s} is new and ${c.length} products have un-scanned stock here — set "Serial No. starts with" in Item Master so the system knows which product it is`}}
+ if(!it)return{msg:`${s} not found in stock records`};
+ if(free(it.id)<=0)return{msg:`${s}: no un-scanned ${it.name} stock left in this godown`};
+ if(!(it.serialPrefixes||[]).length&&s.length>8){it.serialPrefixes=[s.slice(0,s.length-5)];touch('items',it);save(false)}
+ return{it};
+}
+function lineOfSerial(s){return CUR.v.lines.find(l=>(l.serials||[]).some(o=>o.s===s))||{}}
+function insertLine(l){const v=CUR.v;const e=v.lines.findIndex(x=>!x.itemId);if(e>=0)v.lines[e]=l;else v.lines.push(l)}
+async function addSerial(s,idx,hint){
+ const v=CUR.v;s=s.toUpperCase();
+ if(v.lines.some(l=>(l.serials||[]).some(o=>o.s===s)))return{ok:0,msg:s+' already scanned in this entry'};
+ const rec=idx[s];let itemId=null;
+ if(['PUR','OPN'].includes(v.type)){
+  if(rec&&['In Stock','In Transit'].includes(rec.status))return{ok:0,msg:`${s} is already ${rec.status} at ${gN(rec.g)}`};
+  let it=rec?I(rec.itemId):(hint.item||prefixItem(s));
+  if(!it&&hint.newName){it=findItemByCode(hint.newName)||createItemQuick(hint.newName);toast('New product auto-created: '+it.name,3000)}
+  if(!it){const sel=v.lines.filter(l=>l.itemId&&(I(l.itemId)||{}).serial);if(sel.length===1)it=I(sel[0].itemId)}
+  if(!it){const id=await askItem(s);it=id&&I(id)}
+  itemId=it&&it.id;
+ }else if(v.type==='SRT'){
+  if(rec&&rec.status==='In Stock')return{ok:0,msg:`${s} is already In Stock at ${gN(rec.g)}`};
+  if(rec&&rec.status!=='Sold')return{ok:0,msg:`${s} status is ${rec.status} — cannot return`};
+  if(rec&&rec.outV&&v.partyId&&rec.outV.partyId!==v.partyId)toast(`Note: ${s} was sold to ${pN(rec.outV.partyId)}`,3500);
+  let it=rec?I(rec.itemId):prefixItem(s);if(!it){const id=await askItem(s);it=id&&I(id)}itemId=it&&it.id;
+ }else{
+  if(!rec){const pi=pendingItemFor(s,hint,v,idx);if(!pi.it)return{ok:0,msg:pi.msg};itemId=pi.it.id}
+  else{if(rec.status!=='In Stock'||rec.g!==v.godownId)return{ok:0,msg:`${s} is ${rec.status}${rec.g?' @ '+gN(rec.g):''} — not available in this godown`};
+  itemId=rec.itemId}
+ }
+ if(!itemId)return{ok:0,msg:s+' skipped (no product selected)'};
+ const it=I(itemId);if(!it.serial){it.serial=true;touch('items',it)}
+ let l=v.lines.find(x=>x.itemId===itemId);if(!l){l=newLineFor(it);insertLine(l)}
+ l.serials=l.serials||[];l.serials.push({s,p:['PUR','OPN'].includes(v.type)?(CUR.pallet||''):((rec&&rec.pallet)||'')});l.qty=INT.includes(v.type)?Math.max(num(l.qty),l.serials.length):l.serials.length;CUR.dirty=true;
+ return{ok:1,msg:s};
+}
+/* new serial or unknown barcode → choose product or create one (Product Name, Brand, Category) */
+function askItem(serial,barcode){return new Promise(res=>{let done=false;const fin=id=>{if(done)return;done=true;res(id)};
+ const code=serial||barcode;const pre=serial&&serial.length>8?serial.slice(0,serial.length-5):'';
+ const cats=[...new Set(DB.items.map(i=>i.group).filter(Boolean))],brands=[...new Set(DB.items.map(i=>i.brand).filter(Boolean))];
+ const m=modal(`<h3 style="margin-top:0">🆕 New ${serial?'serial no.':'barcode'}: <code>${esc(code)}</code></h3><p class="mut">This code is not linked to any product yet. Pick the product, or create a new one — next time it is added automatically.</p>
+ <div class="f" style="margin-bottom:12px"><label>Existing product</label><input id="aq_i" placeholder="Search product / brand…"></div>
+ <div class="mut" style="text-align:center;margin:6px 0 10px">— or create a new product —</div>
+ <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px"><div class="f" style="grid-column:1/-1"><label>Product Name *</label><input id="aq_n"></div><div class="f"><label>Brand Name</label><input id="aq_b" list="aq_bl"><datalist id="aq_bl">${brands.map(b=>`<option>${esc(b)}</option>`).join('')}</datalist></div><div class="f"><label>Product Category</label><input id="aq_c2" list="aq_cl"><datalist id="aq_cl">${cats.map(b=>`<option>${esc(b)}</option>`).join('')}</datalist></div></div>
+ ${serial?`<label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="aq_rm" checked> Auto-link future serials starting with <input id="aq_p" value="${esc(pre)}" style="width:170px;font-family:monospace"></label>`:''}
+ <div class="btns" style="justify-content:flex-end;margin-top:14px">${!serial&&['PUR','OPN'].includes((CUR&&CUR.v.type)||'')?'<button class="btn" id="aq_pal">It is a Pallet / Box No.</button>':''}<button class="btn" id="aq_skip">Skip</button><button class="btn p" id="aq_c">Create &amp; Add</button></div>`);
+ m._onclose=()=>fin(null);
+ const link=it=>{if(serial){if(m.querySelector('#aq_rm').checked){const p=m.querySelector('#aq_p').value.trim().toUpperCase();if(p){it.serialPrefixes=[...new Set([...(it.serialPrefixes||[]),p])];touch('items',it)}}}else if(!it.code){it.code=barcode;touch('items',it)}save(false)};
+ picker(m.querySelector('#aq_i'),itemSrc(null,null),o=>{const it=I(o.id);if(!serial&&it.code&&it.code!==barcode){toast('This product already has barcode '+it.code);return}link(it);fin(it.id);m.close()});
+ m.querySelector('#aq_skip').onclick=()=>{fin(null);m.close()};
+ if(m.querySelector('#aq_pal'))m.querySelector('#aq_pal').onclick=()=>{fin('PALLET');m.close()};
+ m.querySelector('#aq_c').onclick=()=>{const g=k=>m.querySelector('#aq_'+k).value.trim();if(!g('n'))return toast('Enter the product name');if(DB.items.some(x=>x.name.toLowerCase()===g('n').toLowerCase()))return toast('A product with this name already exists — pick it above');
+  const it=createItemQuick(g('n'),{brand:g('b'),group:g('c2'),serial:!!serial,alias:''});link(it);fin(it.id);m.close()};
+ setTimeout(()=>m.querySelector('#aq_i').focus(),50);
+})}
+function pasteSerials(){
+ const m=modal(`<h3 style="margin-top:0">📋 Paste / Import Serial Numbers</h3><p class="mut">Paste the serial list from the supplier packing list / Excel (any layout — serials are detected automatically), or choose an Excel / CSV file.</p>
+ <textarea id="ps_t" rows="8" placeholder="AB12345678901234&#10;AB12345678901235&#10;…"></textarea>
+ <div class="row" style="margin-top:10px"><div class="f"><label>Excel / CSV file</label><input type="file" id="ps_f" accept=".xlsx,.xls,.csv,.txt"></div>${['PUR','OPN'].includes(CUR.v.type)?`<div class="f"><label>Pallet / Box No. for these serials</label><input id="ps_p" value="${esc(CUR.pallet)}"></div>`:''}</div>
+ <div id="ps_c" class="mut" style="margin-top:8px"></div><div class="btns" style="justify-content:flex-end;margin-top:12px"><button class="btn p" id="ps_go">Add Serials</button></div>`);
+ const cnt=()=>{m.querySelector('#ps_c').textContent=extractSerials(m.querySelector('#ps_t').value).length+' serial(s) detected'};
+ m.querySelector('#ps_t').oninput=cnt;
+ m.querySelector('#ps_f').onchange=async e=>{try{const rows=await readFileTable(e.target.files[0]);m.querySelector('#ps_t').value=rows.map(r=>r.join(' ')).join('\n');cnt()}catch(err){toast('File read error: '+err.message)}};
+ m.querySelector('#ps_go').onclick=async()=>{const t=m.querySelector('#ps_t').value;if(m.querySelector('#ps_p'))CUR.pallet=m.querySelector('#ps_p').value.trim();m.close();const r=await entryScan(t);beep(r.ok);const e=$('#slog');if(e)e.innerHTML=`<span class="${r.ok?'pos':'neg'}">${esc(r.msg)}</span>`;if($('#e_pal'))$('#e_pal').value=CUR.pallet};
+}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'&&VIEW==='entry'&&CUR){e.preventDefault();saveEntry()}});
+function saveEntry(){
+ const v=CUR.v;const keep=v.lines;v.lines=v.lines.filter(l=>l.itemId);
+ const fail=m=>{v.lines=keep;toast(m,4500);return false};
+ if(!v.lines.length)return fail('Scan or add at least one product');
+ for(const l of v.lines){const it=I(l.itemId);if(it.serial){if(OUTT.includes(v.type)){if(!(l.serials||[]).length)return fail(`${it.name}: scan the serial numbers of panels going out`);l.qty=l.serials.length}else l.qty=Math.max(num(l.qty),(l.serials||[]).length)}if(num(l.qty)<=0)return fail(`${it.name}: qty must be more than 0`)}
+ for(const[k,l,,rq]of(FIELDS[v.type]||[]))if(rq&&!v[k])return fail(l+' is required');
+ if(!v.date)return fail('Enter the date');
+ if(!isAdmin()&&v.date>today())return fail('Future date is not allowed');
+ if(v.refNo&&v.partyId&&DB.vouchers.some(x=>!x.deleted&&x.id!==v.id&&x.type===v.type&&x.partyId===v.partyId&&(x.refNo||'').toLowerCase()===v.refNo.toLowerCase()))return fail(`Duplicate: ${v.refNo} is already entered for this party`);
+ const all=v.lines.flatMap(l=>(l.serials||[]).map(o=>o.s));if(new Set(all).size!==all.length)return fail('Duplicate serial numbers in this entry');
+ if(all.length){const idx=serialIndex(v.id);const unk={};for(const s of all){const r=idx[s];
+  if(OUTT.includes(v.type)&&!r){const li=v.lines.find(l=>(l.serials||[]).some(o=>o.s===s));unk[li.itemId]=(unk[li.itemId]||0)+1;continue}
+  if(OUTT.includes(v.type)&&(r.status!=='In Stock'||r.g!==v.godownId))return fail(`${s} is not in stock at this godown`);
+  if(['PUR','OPN'].includes(v.type)&&r&&['In Stock','In Transit'].includes(r.status))return fail(`${s} is already ${r.status}`);}
+  for(const id in unk){const pb=pendingBal(id,v.godownId,idx,v.id);if(unk[id]>pb)return fail(`${I(id).name}: ${unk[id]} new serial(s) but only ${fq(pb)} un-scanned qty in stock at this godown`)}}
+ if(OUTT.includes(v.type)&&!DB.meta.allowNeg){const need={};v.lines.forEach(l=>need[l.itemId]=(need[l.itemId]||0)+num(l.qty));
+  for(const id in need){const a=stockOf(id,v.godownId,v.id);if(need[id]>a+1e-9)return fail(`⛔ ${I(id).name}: only ${fq(a)} in stock, cannot take out ${fq(need[id])}`)}}
+ const isNew=!v.id;const old=isNew?null:DB.vouchers.find(x=>x.id===v.id);
+ if(isNew){v.id=uid('V');v.createdBy=ME.username;v.createdAt=Date.now();if(v.type==='TRF')v.status='In Transit'}else{v.editedBy=ME.username;v.editedAt=Date.now()}
+ v.lines.forEach(l=>{l.qty=num(l.qty);delete l._open});
+ const T2=vTotals(v);
+ put('vouchers',JSON.parse(JSON.stringify(v)));
+ log(isNew?'CREATE':'EDIT',`${v.vno} ${T[v.type].s}${v.refNo?' | '+v.refNo:''} | ${v.lines.length} products | Qty ${fq(T2.qty)}${all.length?' | '+all.length+' serials':''}`+(old?` | OLD: qty ${fq(old.lines.reduce((a,l)=>a+num(l.qty),0))}, ref ${old.refNo||''}, date ${old.date}`:''),v.godownId);
+ save();clearDraft();const id=v.id,ty=v.type;CUR=null;toast('✓ Saved: '+v.vno+' — '+fq(T2.qty)+' qty');
+ if(confirm(`Saved (${v.vno}) — ${fq(T2.qty)} qty.\n\nCreate another ${T[ty].n} entry?`))go('entry',{type:ty});else{go('vouchers');viewV(id)}
+ return true;
+}
+function quickParty(){editParty(null,p=>{if(CUR){CUR.v.partyId=p.id;render()}})}
+
+/* ---------- VOUCHER VIEW / PRINT ---------- */
+/* Admin: every entry. Godown manager: entries of own godown (a transfer already received is locked). Every change is logged. */
+function canEdit(v){if(isAdmin())return true;if(!ME||v.godownId!==ME.godownId)return false;return!(v.type==='TRF'&&v.status==='Received')}
+const REFL={PUR:'Supplier Invoice No.',SAL:'Sale Invoice No.',SRT:'Credit Note No.',PRT:'Debit Note No.'};
+function vDoc(v){
+ const rows=(v.lines||[]).map((l,i)=>{const it=I(l.itemId)||{};return{sn:i+1,item:it.name||'?',brand:it.brand||'',cat:it.group||'',batch:(l.serials||[]).length?(l.serials.length+' serials'):(l.batch||it.code||''),qty:l.qty,recv:l.recvQty,book:l.book}});
+ const cols=[{k:'sn',l:'#'},{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},{k:'batch',l:'Serial / Barcode'},{k:'qty',l:v.type==='PHY'?'Physical Qty':'Qty',n:1,t:1}];
+ if(v.type==='TRF'&&v.status==='Received')cols.push({k:'recv',l:'Received',n:1,t:1});if(v.type==='PHY')cols.push({k:'book',l:'Book Qty',n:1,t:1});
+ const p=Pt(v.partyId);
+ const kv=[['Voucher No.',v.vno],['Date',dmy(v.date)],[v.type==='TRF'?'From Godown':'Godown',gN(v.godownId)],v.type==='TRF'&&['To Godown',gN(v.toGodownId)],p&&['Party',p.name],p&&p.gstin&&['Party GSTIN',p.gstin],
+  v.refNo&&[REFL[v.type]||'Ref No.',v.refNo],v.invDate&&['Invoice / Note Date',dmy(v.invDate)],v.refNo2&&['Against Invoice',v.refNo2],v.ewb&&['e-Way Bill No.',v.ewb],v.dcNo&&[v.type==='SAL'?'Delivery Challan No.':v.type==='TRF'?'Transfer Challan No.':'Packing List / DC No.',v.dcNo],
+  v.vehicle&&['Vehicle No.',v.vehicle],v.lr&&['LR / GR No.',v.lr],v.transporter&&['Transporter / Dispatched Through',v.transporter],v.orderNo&&['Buyer Order / Reference',v.orderNo],v.reason&&['Reason',v.reason],
+  v.type==='TRF'&&['Status',v.status+(v.recvBy?' by '+v.recvBy+' on '+dmy(v.recvDate):'')],v.recvRemark&&['Receipt Remark',v.recvRemark],
+  ['Entered By',v.createdBy+' • '+new Date(v.createdAt).toLocaleString('en-IN')],v.editedBy&&['Last Edited',v.editedBy+' • '+new Date(v.editedAt).toLocaleString('en-IN')]].filter(Boolean);
+ return{cols,rows,kv,tot:vTotals(v)};
+}
+function serialsHTML(v,cls){return(v.lines||[]).filter(l=>(l.serials||[]).length).map(l=>`<div style="margin:10px 0 4px"><b>${esc((I(l.itemId)||{}).name)}</b> — ${l.serials.length} serial(s)</div><div class="${cls||'chips'}">${l.serials.map(o=>`<${cls?'div':'span class="chip '+((l.missing||[]).includes(o.s)?'miss':'')+'"'}>${esc(o.s)}${o.p?' ['+esc(o.p)+']':''}${(l.missing||[]).includes(o.s)?' (MISSING)':''}</${cls?'div':'span'}>`).join('')}</div>`).join('')}
+function viewV(id){const v=DB.vouchers.find(x=>x.id===id);if(!v)return;const t=T[v.type];const{cols,rows,kv}=vDoc(v);
+ const m=modal(`<h3 style="margin:0 0 10px"><span class="bdg" style="--c:${t.c}">${t.n}</span> &nbsp;${esc(v.vno)} ${v.deleted?'<span class="tag bad">DELETED</span>':''}</h3>
+ <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 16px;margin-bottom:12px">${kv.map(([a,b])=>`<div><span class="mut" style="font-size:12px">${a}</span><br><b>${esc(b)}</b></div>`).join('')}</div>
+ ${table(cols,rows)}
+ ${serialsHTML(v)}
+ ${v.narration?`<p><span class="mut">Remarks:</span> ${esc(v.narration)}</p>`:''}
+ <div class="btns" style="margin-top:14px;justify-content:flex-end">
+  ${!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&(isAdmin()||v.toGodownId===ME.godownId)?`<button class="btn g" id="vrc">📥 Receive</button>`:''}
+  ${!v.deleted&&canEdit(v)&&v.type!=='PHY'?`<button class="btn" id="ved">✏ Edit</button><button class="btn d" id="vdl">🗑 Delete</button>`:''}
+  ${!isAdmin()?'<span class="tag mu" style="align-self:center">🔒 Locked — only Admin can edit / delete</span>':''}<button class="btn p" id="vpr">🖨 Print</button></div>`,true);
+ m.querySelector('#vpr').onclick=()=>printV(v);
+ if(m.querySelector('#ved'))m.querySelector('#ved').onclick=()=>{m.close();CUR={dirty:false,v:JSON.parse(JSON.stringify(v)),pallet:''};VIEW='entry';P={};render()};
+ if(m.querySelector('#vdl'))m.querySelector('#vdl').onclick=()=>{const r=prompt('Reason for deleting (saved in audit log):');if(!r)return;
+  if(INT.includes(v.type)){const idx=serialIndex(v.id);const used=v.lines.flatMap(l=>(l.serials||[]).map(o=>o.s)).filter(s=>idx[s]&&idx[s].hist.some(x=>x.date>=v.date));if(used.length)return alert('Cannot delete: '+used.length+' serial(s) from this entry are already used in later entries (e.g. '+used[0]+').')}
+  v.deleted=true;v.deletedBy=ME.username;v.deletedRole=isAdmin()?'Admin':'Godown Manager';v.deletedAt=new Date().toISOString();v.deleteReason=r;touch('vouchers',v);log('DELETE',v.vno+' | Reason: '+r,v.godownId);save();m.close();render();toast('Deleted: '+v.vno)};
+ if(m.querySelector('#vrc'))m.querySelector('#vrc').onclick=()=>{m.close();receiveV(v.id)};
+}
+function printV(v){const t=T[v.type];const{cols,rows,kv,tot}=vDoc(v);const p=Pt(v.partyId);
+ const head={SAL:'DELIVERY CHALLAN / GATE PASS',PUR:'GOODS RECEIPT NOTE (GRN)',TRF:'STOCK TRANSFER CHALLAN',SRT:'SALE RETURN — GOODS RECEIPT',PRT:'PURCHASE RETURN — GOODS OUT'}[v.type]||t.n.toUpperCase();
+ const kv2=kv.filter(([a])=>!['Party','Party GSTIN','Godown','From Godown','To Godown'].includes(a));const half=Math.ceil(kv2.length/2);
+ const kvt=a=>`<table style="border:0">${a.map(([x,y])=>`<tr><td style="border:0;padding:1px 6px 1px 0;color:#444;width:42%">${x}</td><td style="border:0;padding:1px"><b>${esc(y)}</b></td></tr>`).join('')}</table>`;
+ const ann=(v.lines||[]).some(l=>(l.serials||[]).length);
+ printHTML(`<div class="pinv"><div class="hd" style="position:relative"><img src="${LOGO_FULL}" style="position:absolute;left:10px;top:10px;height:42px"><div style="font-size:11px">${head}</div><div style="font-size:18px;font-weight:700">${esc(DB.meta.company)}</div>${DB.meta.address?`<div>${esc(DB.meta.address)}</div>`:''}${DB.meta.gstin?`<div>GSTIN: <b>${esc(DB.meta.gstin)}</b></div>`:''}<div>Godown: ${esc(gN(v.godownId))}</div></div>
+ <div class="box"><div>${p?`<div style="color:#444">${['PUR','PRT'].includes(v.type)?'Supplier':'Customer'}</div><b style="font-size:13px">${esc(p.name)}</b><br>${esc(p.address||'')} ${esc(p.city||'')}<br>${p.gstin?'GSTIN: <b>'+esc(p.gstin)+'</b>':''}`:v.type==='TRF'?`<div style="color:#444">To Godown</div><b>${esc(gN(v.toGodownId))}</b>`:''}</div><div>${kvt(kv2.slice(0,half))}</div></div>
+ <div class="box"><div>${kvt(kv2.slice(half))}</div><div style="font-size:14px">Total Qty: <b>${fq(tot.qty)}</b>${tot.serials?`<br>Serial nos.: <b>${fq(tot.serials)}</b> (see annexure)`:''}</div></div>
+ ${table(cols,rows).replace('class="tw"','style="margin-top:6px"')}
+ ${v.narration?`<p>Remarks: ${esc(v.narration)}</p>`:''}
+ <div style="display:flex;justify-content:space-between;margin-top:50px"><div>Prepared By (${esc(v.createdBy)})</div><div>Checked By (Godown In-charge)</div><div>Receiver's Signature</div></div>
+ ${ann?`<div class="pgb"></div><h3 style="margin:14px 0 4px">Annexure — Serial Numbers (${esc(v.vno)}${v.refNo?' / '+esc(v.refNo):''})</h3>${serialsHTML(v,'ann')}`:''}</div>`)}
+
+/* ---------- VOUCHER LIST ---------- */
+V.vouchers=el=>{title('Day Book / Vouchers');
+ el.innerHTML=filterBar({extra:`<div class="f" style="max-width:200px"><label>Type</label><select id="fty"><option value="">All types</option>${Object.keys(T).map(t=>`<option value="${t}" ${P.fty===t?'selected':''}>${T[t].n}</option>`).join('')}</select></div><div class="f" style="max-width:140px"><label>Show</label><select id="fdel"><option value="">Active</option><option value="1" ${P.fdel?'selected':''}>Deleted</option></select></div>`});
+ bindFilter(()=>{P.fty=$('#fty').value;P.fdel=$('#fdel').value;const gs=fGs();
+  const L=DB.vouchers.filter(v=>(P.fdel?v.deleted:!v.deleted)&&(gs.includes(v.godownId)||gs.includes(v.toGodownId))&&v.date>=P.ff&&v.date<=P.ft&&(!P.fty||v.type===P.fty)&&match(P.fq,v.vno,v.refNo,v.refNo2,v.dcNo,v.ewb,v.vehicle,pN(v.partyId),v.narration,...v.lines.map(l=>(I(l.itemId)||{}).name),...v.lines.map(l=>l.batch),...v.lines.flatMap(l=>(l.serials||[]).map(o=>o.s))))
+   .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt-a.createdAt));
+  const cols=[{k:'date',l:'Date'},{k:'type',l:'Type',f:v=>`<span class="bdg" style="--c:${T[v].c}">${T[v].s}</span>`,x:v=>T[v].n},{k:'vno',l:'Voucher No.'},{k:'g',l:'Godown'},{k:'p',l:'Party / To Godown'},{k:'ref',l:'Invoice / Ref No.'},{k:'dc',l:'DC No.'},{k:'ewb',l:'e-Way Bill'},{k:'veh',l:'Vehicle'},{k:'items',l:'Lines',n:1},{k:'sr',l:'Serials',n:1,t:1},{k:'q',l:'Total Qty',n:1,t:1},{k:'st',l:'Status'},{k:'by',l:'By'}];
+  if(P.fdel)cols.push({k:'del',l:'Deleted By / Reason'});
+  const rows=L.map(v=>({date:dmy(v.date),type:v.type,vno:v.vno,g:gN(v.godownId),p:v.type==='TRF'?'→ '+gN(v.toGodownId):(v.reason||pN(v.partyId)),ref:v.refNo||'',dc:v.dcNo||'',ewb:v.ewb||'',veh:v.vehicle||'',items:v.lines.length,sr:v.lines.reduce((a,l)=>a+(l.serials||[]).length,0),q:v.lines.reduce((a,l)=>a+num(l.qty),0),st:v.status||'',by:v.createdBy,del:(v.deletedBy||'')+' — '+(v.deleteReason||''),_click:`viewV('${v.id}')`}));
+  REPORT={title:'Day Book',sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};$('#rout').innerHTML=`<div class="card"><h3>📒 ${rows.length} vouchers <span class="mut" style="font-weight:400;font-size:12px">— click a row to view / print / edit</span></h3>${table(cols,rows)}</div>`});
+};
+
+/* ---------- RECEIVE TRANSFERS ---------- */
+V.receive=el=>{title('Pending Receipts (Stock Transfer)');const gs=myG();
+ const L=DB.vouchers.filter(v=>!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&gs.includes(v.toGodownId));
+ const out=DB.vouchers.filter(v=>!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&gs.includes(v.godownId));
+ const lq=v=>v.lines.reduce((a,l)=>a+num(l.qty),0);
+ el.innerHTML=`<div class="hint">When goods arrive from another godown, <b>Receive</b> them here and enter the <b>actual quantity received</b> (for serial items, scan / tick each serial). Anything short is reported as <b>Transit Shortage</b> — this catches theft on the way.</div>
+ <div class="card"><h3>📥 Incoming to your godown (${L.length})</h3>${table([{k:'d',l:'Dispatch Date'},{k:'vno',l:'Challan No.'},{k:'f',l:'From Godown'},{k:'t',l:'To Godown'},{k:'veh',l:'Vehicle'},{k:'q',l:'Qty',n:1,t:1},{k:'by',l:'Sent By'},{k:'a',l:'',f:(x,r)=>`<button class="btn sm g" onclick="event.stopPropagation();receiveV('${r.id}')">Receive</button>`}],L.map(v=>({id:v.id,d:dmy(v.date),vno:v.vno,f:gN(v.godownId),t:gN(v.toGodownId),veh:v.vehicle||'',q:lq(v),by:v.createdBy,_click:`viewV('${v.id}')`})))}</div>
+ <div class="card"><h3>🚚 Sent from your godown, not yet received (${out.length})</h3>${table([{k:'d',l:'Date'},{k:'vno',l:'Challan No.'},{k:'t',l:'To Godown'},{k:'veh',l:'Vehicle'},{k:'q',l:'Qty',n:1,t:1},{k:'days',l:'Days Pending',n:1,f:v=>`<span class="${v>2?'neg':''}">${v}</span>`}],out.map(v=>({d:dmy(v.date),vno:v.vno,t:gN(v.toGodownId),veh:v.vehicle||'',q:lq(v),days:Math.max(0,Math.round((new Date(today())-new Date(v.date))/864e5)),_click:`viewV('${v.id}')`})))}</div>`;
+};
+function receiveV(id){const v=DB.vouchers.find(x=>x.id===id);const got=new Set(v.lines.flatMap(l=>(l.serials||[]).map(o=>o.s)));
+ const m=modal(`<h3 style="margin-top:0">📥 Receive: ${esc(v.vno)}</h3><p class="mut">${esc(gN(v.godownId))} → <b>${esc(gN(v.toGodownId))}</b> | Vehicle: ${esc(v.vehicle||'-')}</p>
+ <div class="row" style="margin-bottom:10px"><div class="f" style="max-width:180px"><label>Receive Date</label><input type="date" id="rdt" value="${today()}" min="${v.date}"></div>
+ ${got.size?`<div class="f"><label>Verify serials by scanning (optional)</label><input id="rscan" placeholder="Scan serials received…"></div><button class="btn" id="rnone">Untick all</button><button class="btn" id="rcam">📷</button>`:''}</div>
+ <div class="tw"><table><thead><tr><th>Item</th><th class="n">Sent</th><th class="n">Received Qty</th></tr></thead><tbody>${v.lines.map((l,i)=>`<tr><td>${esc((I(l.itemId)||{}).name)}${(l.serials||[]).length?`<div class="chips" style="margin-top:6px">${l.serials.map(o=>`<label class="chip"><input type="checkbox" class="rs" data-i="${i}" value="${esc(o.s)}" checked> ${esc(o.s)}</label>`).join('')}</div>`:''}</td><td class="n">${fq(l.qty)}</td><td class="n"><input type="number" step="any" class="rq" data-i="${i}" value="${l.qty}" style="width:100px;text-align:right" ${(l.serials||[]).length?'readonly':''}></td></tr>`).join('')}</tbody></table></div>
+ <div class="f" style="margin-top:10px"><label>Remark (mention shortage / damage)</label><input id="rrm"></div>
+ <div id="rmsg" class="mut" style="margin-top:6px"></div>
+ <div class="btns" style="justify-content:flex-end;margin-top:14px"><button class="btn g" id="rok">✓ Confirm Receive</button></div>`,true);
+ const upd=()=>{v.lines.forEach((l,i)=>{if((l.serials||[]).length)m.querySelector(`.rq[data-i="${i}"]`).value=m.querySelectorAll(`.rs[data-i="${i}"]:checked`).length})};
+ m.querySelectorAll('.rs').forEach(c=>c.onchange=upd);
+ const tick=c=>{let n=0;extractSerials(c).forEach(s=>{const b=[...m.querySelectorAll('.rs')].find(x=>x.value===s);if(b){b.checked=true;n++}});upd();const r={ok:n>0,msg:n?n+' serial(s) verified':'Serial not in this challan: '+c};m.querySelector('#rmsg').textContent=r.msg;beep(r.ok);return r};
+ if(m.querySelector('#rscan'))m.querySelector('#rscan').onkeydown=e=>{if(e.key==='Enter'){tick(e.target.value);e.target.value=''}};
+ if(m.querySelector('#rnone'))m.querySelector('#rnone').onclick=()=>{m.querySelectorAll('.rs').forEach(c=>c.checked=false);upd();m.querySelector('#rmsg').textContent='Now scan each serial physically received'};
+ if(m.querySelector('#rcam'))m.querySelector('#rcam').onclick=()=>scanner(async c=>tick(c),true);
+ m.querySelector('#rok').onclick=()=>{let short=0;v.lines.forEach((l,i)=>{if((l.serials||[]).length){const ok=new Set([...m.querySelectorAll(`.rs[data-i="${i}"]:checked`)].map(c=>c.value));l.missing=l.serials.map(o=>o.s).filter(s=>!ok.has(s));l.recvQty=l.serials.length-l.missing.length}else l.recvQty=Math.max(0,num(m.querySelector(`.rq[data-i="${i}"]`).value));short+=num(l.qty)-l.recvQty});
+  v.status='Received';v.recvDate=m.querySelector('#rdt').value||today();v.recvBy=ME.username;v.recvRemark=m.querySelector('#rrm').value;touch('vouchers',v);
+  log('RECEIVE',v.vno+(short?' | SHORTAGE '+fq(short):'')+(v.recvRemark?' | '+v.recvRemark:''),v.toGodownId);save();m.close();toast(short?'⚠ Received with shortage of '+fq(short):'✓ Received in full');render()};
+}
+
+/* ---------- PHYSICAL VERIFICATION ---------- */
+V.physical=el=>{title('Physical Verification (Stock Count)');
+ if(!P.ph)P.ph={g:isAdmin()?(P.g||DB.godowns[0].id):ME.godownId,date:today(),lines:[],unknown:[]};const S=P.ph;
+ el.innerHTML=`<div class="hint">Walk through the godown and <b>scan every item / serial QR</b>. The system compares with <b>Book Stock</b> and shows <b>Shortage / Excess</b> instantly — for serial items it also lists exactly <b>which serial numbers are missing</b>. This entry does not change stock; it is a control record.</div>
+ <div class="card"><div class="row"><div class="f"><label>Godown</label><select id="phg" ${isAdmin()?'':'disabled'}>${gOpts(false,S.g)}</select></div><div class="f" style="max-width:170px"><label>Count Date</label><input type="date" id="phd" value="${S.date}"></div>
+ <div class="f" style="flex:2"><label>Scan / search</label><input id="phs" placeholder="▦ Scan item barcode (+1) or serial QR"></div><button class="btn p" id="phc">📷 Camera</button><button class="btn" id="phall">List all items</button></div><div class="scanlog" id="phlog"></div></div>
+ <div class="card" id="pho"></div>`;
+ const bookSerials=itemId=>Object.values(serialIndex()).filter(r=>r.itemId===itemId&&r.status==='In Stock'&&r.g===S.g).map(r=>r.s);
+ const draw=()=>{const rows=S.lines.map((l,i)=>{const it=I(l.itemId);const b=stockOf(l.itemId,S.g);const q=it.serial&&l.serials.length?l.serials.length:num(l.qty);const miss=it.serial?bookSerials(l.itemId).filter(s=>!l.serials.includes(s)):[];return{i,it,b,q,diff:q-b,miss}});
+  $('#pho').innerHTML=`<h3>Counted items (${rows.length})</h3>`+(rows.length?`<div class="tw"><table><thead><tr><th>Item</th><th>Brand • Category</th><th class="n">Book Stock</th><th class="n">Physical Qty</th><th class="n">Difference</th><th>Status</th><th>Missing serials</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td style="white-space:normal;min-width:200px;max-width:300px">${esc(r.it.name)}${r.it.serial?' <span class="tag inf">Serial</span>':''}</td><td>${esc(bcat(r.it))}</td><td class="n">${fq(r.b)}</td><td class="n"><input type="number" step="any" data-i="${r.i}" class="phq" value="${r.q}" style="width:90px;text-align:right" ${r.it.serial?'readonly':''}></td><td class="n ${r.diff<0?'neg':r.diff>0?'pos':''}">${fq(r.diff)}</td><td>${r.diff===0?'<span class="tag ok">Matched</span>':r.diff<0?'<span class="tag bad">Shortage</span>':'<span class="tag warn">Excess</span>'}</td><td style="white-space:normal;min-width:280px;max-width:420px;font-family:monospace;font-size:11px">${r.it.serial?(r.miss.length?esc(r.miss.slice(0,30).join(', '))+(r.miss.length>30?' …+'+(r.miss.length-30):''):'—'):''}</td><td><button class="btn sm d" data-x="${r.i}">✕</button></td></tr>`).join('')}</tbody></table></div>
+   ${S.unknown.length?`<div class="warnbox" style="margin-top:10px">⚠ Scanned serials that do NOT belong to this godown's stock: ${esc(S.unknown.join(', '))}</div>`:''}
+   <div class="btns" style="justify-content:flex-end;margin-top:12px"><button class="btn p" id="phsave">💾 Save Verification</button></div>`:'<div class="empty">Scan items or serials to start counting</div>');
+  $$('.phq').forEach(x=>x.onchange=e=>{S.lines[+x.dataset.i].qty=num(e.target.value);draw()});
+  $$('[data-x]').forEach(b=>b.onclick=()=>{S.lines.splice(+b.dataset.x,1);draw()});
+  if($('#phsave'))$('#phsave').onclick=()=>{const v={id:uid('V'),type:'PHY',date:S.date,godownId:S.g,vno:nextVno('PHY',S.g),unknown:S.unknown,lines:S.lines.map(l=>{const it=I(l.itemId);const q=it.serial&&l.serials.length?l.serials.length:num(l.qty);return{itemId:l.itemId,qty:q,book:stockOf(l.itemId,S.g),serials:l.serials.map(s=>({s})),missing:it.serial?bookSerials(l.itemId).filter(s=>!l.serials.includes(s)):[]}}),createdBy:ME.username,createdAt:Date.now()};
+   put('vouchers',v);const sh=v.lines.filter(l=>l.qty<l.book).length;log('PHYSICAL',v.vno+' | '+v.lines.length+' items | '+sh+' with shortage',S.g);save();P.ph=null;toast('✓ Saved '+v.vno);go('r_phy')};
+ };
+ const lineFor=id=>{let l=S.lines.find(x=>x.itemId===id);if(!l){l={itemId:id,qty:0,serials:[]};S.lines.unshift(l)}return l};
+ const scan=c=>{c=String(c).trim();const it=findItemByCode(c);let r;
+  if(it&&!it.serial){lineFor(it.id).qty++;r={ok:1,msg:it.name+' +1'}}
+  else{const ss=extractSerials(c);if(!ss.length)r={ok:0,msg:'Not found: '+c};else{const idx=serialIndex();let n=0;ss.forEach(s=>{const x=idx[s];if(x&&x.status==='In Stock'&&x.g===S.g){const l=lineFor(x.itemId);if(!l.serials.includes(s)){l.serials.push(s);n++}}else if(!S.unknown.includes(s))S.unknown.push(s+(x?' ('+x.status+(x.g?' @ '+(G(x.g)||{}).code:'')+')':' (not in system)'))});r=n?{ok:1,msg:n+' serial(s) counted'}:{ok:0,msg:ss[0]+' does not belong to this godown stock'}}}
+  draw();beep(r.ok);$('#phlog').innerHTML=`<span class="${r.ok?'pos':'neg'}">${esc(r.msg)}</span>`;return r};
+ $('#phg').onchange=e=>{S.g=e.target.value;S.lines=[];S.unknown=[];draw()};$('#phd').onchange=e=>S.date=e.target.value;
+ picker($('#phs'),itemSrc(S.g),o=>{if(I(o.id).serial){toast('Serial item — scan its serial QRs');lineFor(o.id);draw()}else{lineFor(o.id).qty++;draw()}$('#phs').value=''});
+ $('#phs').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){scan(e.target.value);e.target.value=''}});
+ $('#phc').onclick=()=>scanner(async c=>scan(c),true);
+ $('#phall').onclick=()=>{summary([S.g],'1900-01-01','9999-12-31').filter(r=>r.cl!==0).forEach(r=>lineFor(r.itemId));draw()};
+ draw();
+};
+
+/* ---------- REPORTS ---------- */
+function lineRows(types,filterFn){const gs=fGs();const out=[];
+ DB.vouchers.forEach(v=>{if(v.deleted||!types.includes(v.type))return;if(!(gs.includes(v.godownId)||(v.type==='TRF'&&gs.includes(v.toGodownId))))return;if(v.date<P.ff||v.date>P.ft)return;if(P.fp&&v.partyId!==P.fp)return;
+  v.lines.forEach(l=>{if(P.fi&&l.itemId!==P.fi)return;const it=I(l.itemId)||{};const sr=(l.serials||[]).map(o=>o.s);
+   const r={date:dmy(v.date),_d:v.date,vno:v.vno,type:T[v.type].s,g:gN(v.godownId),to:gN(v.toGodownId),party:pN(v.partyId),gstin:(Pt(v.partyId)||{}).gstin||'',ref:v.refNo||'',ref2:v.refNo2||'',invDate:dmy(v.invDate),dc:v.dcNo||'',ewb:v.ewb||'',veh:v.vehicle||'',lr:v.lr||'',trans:v.transporter||'',item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',batch:l.batch||'',serials:sr.join(', '),sc:sr.length,qty:num(l.qty),
+    recv:v.status==='Received'?num(l.recvQty??l.qty):0,short:v.status==='Received'?num(l.qty)-num(l.recvQty??l.qty):0,missing:(l.missing||[]).join(', '),st:v.status||'',recvDate:dmy(v.recvDate),recvBy:v.recvBy||'',reason:v.reason||'',narr:v.narration||'',by:v.createdBy,_click:`viewV('${v.id}')`};
+   if(match(P.fq,r.vno,r.party,r.ref,r.ref2,r.dc,r.ewb,r.veh,r.item,r.brand,r.cat,r.batch,r.serials,r.narr)&&(!filterFn||filterFn(r,v)))out.push(r)})});
+ return out.sort((a,b)=>a._d.localeCompare(b._d));
+}
+const SRC={k:'serials',l:'Serial Nos.',f:(v,r)=>r.sc?`<span title="${esc(v)}">${r.sc} serials</span>`:'',x:v=>v};
+const C={date:{k:'date',l:'Date'},vno:{k:'vno',l:'Voucher No.'},g:{k:'g',l:'Godown'},item:{k:'item',l:'Product'},brand:{k:'brand',l:'Brand'},cat:{k:'cat',l:'Category'},qty:{k:'qty',l:'Qty',n:1,t:1},veh:{k:'veh',l:'Vehicle'},ewb:{k:'ewb',l:'e-Way Bill'},by:{k:'by',l:'Entered By'},narr:{k:'narr',l:'Remarks'}};
+function regView(key,ttl,types,cols,icon){V[key]=el=>{title(ttl);el.innerHTML=filterBar({item:1,party:types.some(t=>t!=='TRF'&&t!=='DMG')});
+ bindFilter(()=>{const rows=lineRows(types);REPORT={title:ttl,sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};
+  $('#rout').innerHTML=`<div class="grid kpis" style="margin-bottom:14px"><div class="kpi"><small>Vouchers</small><b>${new Set(rows.map(r=>r.vno)).size}</b></div><div class="kpi" style="--c:#0ea5a4"><small>Total Qty</small><b>${fq(rows.reduce((a,r)=>a+r.qty,0))}</b></div><div class="kpi" style="--c:#163351"><small>Serial Nos.</small><b>${fq(rows.reduce((a,r)=>a+r.sc,0))}</b></div><div class="kpi" style="--c:#15803d"><small>Products</small><b>${new Set(rows.map(r=>r.item)).size}</b></div></div><div class="card"><h3>${icon} ${ttl}</h3>${table(cols,rows)}</div>`})}}
+regView('r_inward','Inward Register (Purchase)',['PUR'],[C.date,C.vno,C.g,{k:'party',l:'Supplier'},{k:'ref',l:'Purchase Inv No.'},{k:'invDate',l:'Inv Date'},C.ewb,{k:'dc',l:'Packing List / DC'},C.veh,C.item,C.brand,C.cat,SRC,C.qty,C.by],'⬇️');
+regView('r_outward','Outward Register (Sale)',['SAL'],[C.date,C.vno,C.g,{k:'party',l:'Customer'},{k:'ref',l:'Sale Inv No.'},{k:'invDate',l:'Inv Date'},C.ewb,{k:'dc',l:'Delivery Challan'},C.veh,{k:'trans',l:'Dispatched Through'},C.item,C.brand,C.cat,SRC,C.qty,C.by],'⬆️');
+regView('r_srt','Sale Return Register',['SRT'],[C.date,C.vno,C.g,{k:'party',l:'Customer'},{k:'ref',l:'Credit Note No.'},{k:'ref2',l:'Against Sale Inv'},C.veh,C.item,C.brand,C.cat,SRC,C.qty,C.narr,C.by],'↩️');
+regView('r_prt','Purchase Return Register',['PRT'],[C.date,C.vno,C.g,{k:'party',l:'Supplier'},{k:'ref',l:'Debit Note No.'},{k:'ref2',l:'Against Purchase Inv'},C.veh,C.item,C.brand,C.cat,SRC,C.qty,C.narr,C.by],'↪️');
+regView('r_trf','Stock Transfer Register',['TRF'],[C.date,C.vno,{k:'g',l:'From Godown'},{k:'to',l:'To Godown'},{k:'dc',l:'Challan No.'},C.veh,C.item,C.brand,SRC,{k:'qty',l:'Sent',n:1,t:1},{k:'recv',l:'Received',n:1,t:1},{k:'short',l:'Transit Shortage',n:1,t:1,f:v=>v>0?`<span class="neg">${fq(v)}</span>`:fq(v)},{k:'missing',l:'Missing Serials'},{k:'st',l:'Status',f:v=>`<span class="tag ${v==='Received'?'ok':'warn'}">${v}</span>`},{k:'recvDate',l:'Recv Date'},{k:'recvBy',l:'Recv By'},C.by],'🔁');
+regView('r_dmg','Damage / Shortage Register',['DMG'],[C.date,C.vno,C.g,{k:'reason',l:'Reason'},C.item,C.brand,C.cat,SRC,C.qty,C.narr,C.by],'⚠️');
+
+/* serial-wise stock rows: one row per panel in stock (+ non-serial products as one row, + un-scanned qty) */
+function serialStockRows(gs){const S=new Set(gs);const idx=serialIndex();const rows=[];
+ Object.values(idx).filter(r=>r.status==='In Stock'&&S.has(r.g)).forEach(r=>{const it=I(r.itemId)||{};const i=r.inV||r.srtV||r.trV||{};
+  rows.push({g:gN(r.g),item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:r.s,pallet:r.pallet||'',qty:1,inDate:dmy(i.date),inType:i.type?T[i.type].s:'',inRef:i.refNo||'',sup:pN(i.partyId),_click:`serialCard('${r.s}')`})});
+ summary(gs,'1900-01-01','9999-12-31',true).forEach(r=>{const it=I(r.itemId)||{};if(r.cl<=0)return;
+  if(it.serial){const n=Object.values(idx).filter(x=>x.itemId===r.itemId&&x.status==='In Stock'&&x.g===r.godownId).length;const pend=r.cl-n;
+   if(pend>0)rows.push({g:gN(r.godownId),item:it.name,brand:it.brand||'',cat:it.group||'',code:'(serial not scanned yet)',pallet:'',qty:pend,inDate:'',inType:'',inRef:'',sup:''})}
+  else rows.push({g:gN(r.godownId),item:it.name,brand:it.brand||'',cat:it.group||'',code:it.code||'(no barcode)',pallet:'',qty:r.cl,inDate:'',inType:'',inRef:'',sup:''})});
+ rows.sort((a,b)=>a.g.localeCompare(b.g)||a.item.localeCompare(b.item)||a.code.localeCompare(b.code));rows.forEach((r,k)=>r.sn=k+1);return rows}
+const SERCOLS=[{k:'sn',l:'Sr.'},{k:'code',l:'Serial / Barcode No.',f:v=>`<b style="font-family:monospace">${esc(v)}</b>`},{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},{k:'g',l:'Godown'},{k:'pallet',l:'Pallet / Box'},{k:'qty',l:'Qty',n:1,t:1},{k:'inDate',l:'IN Date'},{k:'inType',l:'IN Type'},{k:'inRef',l:'Purchase Inv No.'},{k:'sup',l:'Supplier'}];
+async function exportXLMulti(name,sheets){
+ const toAoa=sh=>[sh.cols.map(c=>c.l),...sh.rows.map(r=>sh.cols.map(c=>{const v=r[c.k];return c.n?(+v||0):(c.x?c.x(v,r):(v??''))}))];
+ try{await loadScript(XLSXURL);const wb=XLSX.utils.book_new();sheets.forEach(sh=>{const ws=XLSX.utils.aoa_to_sheet(toAoa(sh));ws['!cols']=sh.cols.map(c=>({wch:Math.min(60,Math.max(10,c.w||c.l.length+2))}));ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:sh.rows.length,c:sh.cols.length-1}})};XLSX.utils.book_append_sheet(wb,ws,sh.name.slice(0,30))});XLSX.writeFile(wb,name+'.xlsx')}
+ catch(e){sheets.forEach(sh=>{const csv=toAoa(sh).map(r=>r.map(v=>{v=String(v);return/[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')).join('\n');dl(name+'_'+sh.name.replace(/\W+/g,'_')+'.csv','﻿'+csv,'text/csv')});toast('Offline — downloaded as CSV files (one per sheet)')}
+}
+function exportStockWithSerials(){
+ const gs=fGs(),idx=serialIndex();
+ const sum=summary(gs,'1900-01-01',P.ft||today(),true).filter(r=>r.cl||r.transit).map(r=>{const it=I(r.itemId)||{};const ss=Object.values(idx).filter(x=>x.itemId===r.itemId&&x.status==='In Stock'&&x.g===r.godownId).map(x=>x.s).sort();
+  return{g:gN(r.godownId),item:it.name||'?',brand:it.brand||'',cat:it.group||'',cl:r.cl,transit:r.transit,sc:ss.length,pend:it.serial?Math.max(0,r.cl-ss.length):'',codes:it.serial?ss.join(', '):(it.code||'')}}).sort((a,b)=>a.g.localeCompare(b.g)||a.item.localeCompare(b.item));
+ exportXLMulti('Stock_with_Serial_Nos_'+today(),[
+  {name:'Stock Summary',cols:[{k:'g',l:'Godown',w:32},{k:'item',l:'Product',w:50},{k:'brand',l:'Brand'},{k:'cat',l:'Category',w:14},{k:'cl',l:'Available Qty',n:1},{k:'sc',l:'Panels with Serial No.',n:1,w:20},{k:'pend',l:'Serial not scanned',n:1,w:18},{k:'transit',l:'In Transit',n:1},{k:'codes',l:'Serial / Barcode Numbers',w:60}],rows:sum},
+  {name:'Serial-wise Stock',cols:SERCOLS.map(c=>({...c,f:null,w:{g:32,item:50,code:22,sup:28}[c.k]})),rows:serialStockRows(gs)}]);
+}
+V.r_summary=el=>{title('Stock Summary');el.innerHTML=filterBar({extra:`<div class="f" style="max-width:230px"><label>View</label><select id="fvw"><option value="g">Godown-wise detail</option><option value="c" ${P.fvw==='c'?'selected':''}>Combined (all godowns)</option><option value="s" ${P.fvw==='s'?'selected':''}>Serial / barcode-wise (every panel)</option></select></div><div class="f" style="max-width:150px"><label>Zero stock</label><select id="fz"><option value="">Hide</option><option value="1" ${P.fz?'selected':''}>Show</option></select></div>`});
+ bindFilter(()=>{P.fvw=$('#fvw').value;P.fz=$('#fz').value;
+  if(P.fvw==='s'){const rows=serialStockRows(fGs()).filter(r=>match(P.fq,r.item,r.brand,r.cat,r.code,r.pallet,r.inRef,r.sup));
+   const by={};rows.forEach(r=>{const k=r.g+' | '+r.item;by[k]=(by[k]||0)+r.qty});
+   REPORT={title:'Serial-wise Stock',sub:gLabel()+' | as on '+dmy(today()),cols:SERCOLS,rows};
+   $('#rout').innerHTML=`<div class="card"><h3>📦 Panels in stock — ${esc(gLabel())}</h3>${table([{k:'k',l:'Godown | Product'},{k:'q',l:'Panels / Qty',n:1,t:1}],Object.keys(by).map(k=>({k,q:by[k]})))}</div><div class="card"><h3>🔢 Serial / barcode-wise list <span class="mut" style="font-weight:400;font-size:12px">(one row per panel — click for its history)</span></h3>${table(SERCOLS,rows)}</div>`;return}
+  const byG=P.fvw!=='c';const idx=serialIndex();
+  let rows=summary(fGs(),P.ff,P.ft,byG).map(r=>{const it=I(r.itemId)||{};const sc=it.serial?Object.values(idx).filter(x=>x.itemId===r.itemId&&x.status==='In Stock'&&(byG?x.g===r.godownId:fGs().includes(x.g))).length:'';return{...r,item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',g:gN(r.godownId),sc,_click:`go('r_ledger',{fi:'${r.itemId}',fiN:'${esc((it.name||'').replace(/'/g,''))}',fg:'${byG?r.godownId:(P.fg||'ALL')}',ff:'${P.ff}',ft:'${P.ft}'})`}});
+  if(!P.fz)rows=rows.filter(r=>r.op||r.tIn||r.tOut||r.cl||r.transit);
+  rows=rows.filter(r=>match(P.fq,r.item,r.brand,r.code,r.cat)).sort((a,b)=>a.item.localeCompare(b.item)||a.g.localeCompare(b.g));
+  const cols=[{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},...(byG?[{k:'g',l:'Godown'}]:[]),{k:'op',l:'Opening',n:1,t:1},{k:'pur',l:'Purchase In',n:1,t:1},{k:'srt',l:'Sale Return In',n:1,t:1},{k:'tin',l:'Transfer In',n:1,t:1},{k:'tIn',l:'TOTAL IN',n:1,t:1,f:v=>`<b class="pos">${fq(v)}</b>`},{k:'sal',l:'Sale Out',n:1,t:1},{k:'prt',l:'Purch. Return Out',n:1,t:1},{k:'tout',l:'Transfer Out',n:1,t:1},{k:'dmg',l:'Damage Out',n:1,t:1},{k:'tOut',l:'TOTAL OUT',n:1,t:1,f:v=>`<b class="neg">${fq(v)}</b>`},{k:'cl',l:'AVAILABLE',n:1,t:1,f:v=>`<b style="color:${v<0?'var(--bad)':'var(--acc)'}">${fq(v)}</b>`},{k:'sc',l:'Serial Nos. In Stock',n:1,t:1,f:v=>v===''?'':fq(v)},{k:'transit',l:'In Transit',n:1,t:1}];
+  REPORT={title:'Stock Summary',sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};
+  $('#rout').innerHTML=`<div class="card"><h3>📦 Stock Summary — ${esc(gLabel())} <span class="mut" style="font-weight:400;font-size:12px">(click a row for the product ledger)</span></h3>${table(cols,rows)}</div>`});
+ $('#fxl').onclick=exportStockWithSerials;$('#fxl').innerHTML='⬇ Excel (with serial nos.)';
+};
+V.r_serial=el=>{title('Serial No. Register');
+ el.innerHTML=filterBar({d:false,item:1,extra:`<div class="f" style="max-width:200px"><label>Status</label><select id="fst"><option value="">All</option>${Object.keys(ST_COL).map(s=>`<option ${P.fst===s?'selected':''}>${s}</option>`).join('')}</select></div><div class="f" style="max-width:190px"><label>Pallet / Box No.</label><input id="fpal" value="${esc(P.fpal||'')}"></div>`});
+ bindFilter(()=>{P.fst=$('#fst').value;P.fpal=$('#fpal').value.trim();const gs=new Set(fGs());const idx=serialIndex();
+  const rows=Object.values(idx).filter(r=>(gs.has(r.g)||r.hist.some(v=>gs.has(v.godownId)||gs.has(v.toGodownId)))&&(!P.fi||r.itemId===P.fi)&&(!P.fst||r.status===P.fst)&&(!P.fpal||(r.pallet||'').toLowerCase().includes(P.fpal.toLowerCase())))
+   .map(r=>{const it=I(r.itemId)||{};const i=r.inV||{},o=r.outV||{};return{s:r.s,item:it.name||'?',brand:it.brand||'',cat:it.group||'',pallet:r.pallet,st:r.status,g:gN(r.g),inDate:dmy(i.date),inType:i.type?T[i.type].s:'',inRef:i.refNo||'',sup:pN(i.partyId),outDate:dmy(o.date),outRef:o.refNo||'',cust:pN(o.partyId),dc:o.dcNo||'',veh:o.vehicle||'',moves:r.hist.length,_click:`serialCard('${r.s}')`}})
+   .filter(r=>match(P.fq,r.s,r.item,r.brand,r.cat,r.pallet,r.inRef,r.sup,r.outRef,r.cust,r.dc,r.veh)).sort((a,b)=>a.s.localeCompare(b.s));
+  const cols=[{k:'s',l:'Serial No.',f:v=>`<b style="font-family:monospace">${esc(v)}</b>`},{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},{k:'pallet',l:'Pallet / Box'},{k:'st',l:'Status',f:v=>`<span class="tag ${ST_COL[v]||'mu'}">${v}</span>`},{k:'g',l:'Current / Last Godown'},{k:'inDate',l:'IN Date'},{k:'inType',l:'IN Type'},{k:'inRef',l:'Purchase Inv No.'},{k:'sup',l:'Supplier'},{k:'outDate',l:'OUT Date'},{k:'outRef',l:'Sale Inv No.'},{k:'cust',l:'Customer'},{k:'dc',l:'DC No.'},{k:'veh',l:'Vehicle'},{k:'moves',l:'Moves',n:1}];
+  const cnt=s=>rows.filter(r=>r.st===s).length;
+  REPORT={title:'Serial No Register',sub:gLabel(),cols,rows};
+  $('#rout').innerHTML=`<div class="grid kpis" style="margin-bottom:14px"><div class="kpi"><small>Total Serials</small><b>${fq(rows.length)}</b></div><div class="kpi" style="--c:#15803d"><small>In Stock</small><b>${fq(cnt('In Stock'))}</b></div><div class="kpi" style="--c:#0e95a2"><small>Sold</small><b>${fq(cnt('Sold'))}</b></div><div class="kpi" style="--c:#b45309"><small>In Transit</small><b>${fq(cnt('In Transit'))}</b></div><div class="kpi" style="--c:#c62828"><small>Missing / Damaged</small><b>${fq(cnt('Missing in Transit')+cnt('Damaged / Missing'))}</b></div></div>
+  <div class="card"><h3>🔢 Serial No. Register <span class="mut" style="font-weight:400;font-size:12px">— every panel / unit: where it came from and where it went (click for full history)</span></h3>${table(cols,rows)}</div>`});
+};
+function serialCard(s){const r=serialIndex()[s];if(!r)return toast('Serial not found');const it=I(r.itemId)||{};
+ modal(`<h3 style="margin-top:0">🔢 <span style="font-family:monospace">${esc(s)}</span> <span class="tag ${ST_COL[r.status]||'mu'}">${r.status}</span></h3>
+ <p><b>${esc(it.name)}</b> <span class="mut">${esc(bcat(it))}</span> ${r.pallet?'• Pallet / Box: <b>'+esc(r.pallet)+'</b>':''} • Godown: <b>${esc(gN(r.g))}</b></p>
+ ${table([{k:'d',l:'Date'},{k:'t',l:'Type',f:v=>`<span class="bdg" style="--c:${T[v].c}">${T[v].s}</span>`},{k:'vno',l:'Voucher No.'},{k:'ref',l:'Invoice / Ref'},{k:'g',l:'Godown'},{k:'p',l:'Party / To'},{k:'dc',l:'DC No.'},{k:'veh',l:'Vehicle'},{k:'by',l:'By'}],r.hist.map(v=>({d:dmy(v.date),t:v.type,vno:v.vno,ref:v.refNo||'',g:gN(v.godownId),p:v.type==='TRF'?'→ '+gN(v.toGodownId)+(v.status==='Received'?'':' (in transit)'):(v.reason||pN(v.partyId)),dc:v.dcNo||'',veh:v.vehicle||'',by:v.createdBy,_click:`viewV('${v.id}')`})))}`,true)}
+V.r_ledger=el=>{title('Product Stock Ledger');el.innerHTML=filterBar({item:2,q:false});
+ bindFilter(()=>{if(!P.fi){$('#rout').innerHTML='<div class="card empty">Select or scan a product — its full IN / OUT history (like Tally Stock Item Vouchers) will be shown</div>';REPORT=null;return}
+  const it=I(P.fi),gs=fGs();let bal=0;const rows=[];
+  allMoves(gs).filter(m=>m.item===P.fi).sort((a,b)=>a.date.localeCompare(b.date)||(a.v.createdAt-b.v.createdAt)).forEach(m=>{if(m.date>P.ft)return;if(m.date<P.ff){bal+=m.q;return}
+   bal+=m.q;const v=m.v;rows.push({date:dmy(m.date),type:m.k==='tin'?'Transfer In':m.k==='tout'?'Transfer Out':T[v.type].s,vno:v.vno,g:gN(m.g),party:v.type==='TRF'?(m.k==='tin'?'From: '+gN(v.godownId):'To: '+gN(v.toGodownId)):(v.reason||pN(v.partyId)),ref:v.refNo||'',dc:v.dcNo||'',veh:v.vehicle||'',sc:(m.l.serials||[]).length,in:m.q>0?m.q:0,out:m.q<0?-m.q:0,bal,by:m.k==='tin'?v.recvBy:v.createdBy,_click:`viewV('${v.id}')`})});
+  const op=bal-rows.reduce((a,r)=>a+r.in-r.out,0);
+  rows.unshift({date:dmy(P.ff),type:'Opening Balance',vno:'',g:'',party:'',ref:'',dc:'',veh:'',sc:'',in:0,out:0,bal:op,by:''});
+  const cols=[{k:'date',l:'Date'},{k:'type',l:'Type'},{k:'vno',l:'Voucher No.'},{k:'g',l:'Godown'},{k:'party',l:'Party / Godown'},{k:'ref',l:'Invoice No.'},{k:'dc',l:'DC No.'},{k:'veh',l:'Vehicle'},{k:'sc',l:'Serials'},{k:'in',l:'IN',n:1,t:1,f:v=>v?`<span class="pos">${fq(v)}</span>`:''},{k:'out',l:'OUT',n:1,t:1,f:v=>v?`<span class="neg">${fq(v)}</span>`:''},{k:'bal',l:'Balance',n:1,f:v=>`<b>${fq(v)}</b>`},{k:'by',l:'By'}];
+  REPORT={title:'Stock Ledger — '+it.name,sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};
+  $('#rout').innerHTML=`<div class="card"><h3>📑 ${esc(it.name)} <span class="mut" style="font-weight:400">${esc(bcat(it))}</span></h3><div class="grid kpis" style="margin-bottom:12px"><div class="kpi"><small>Opening</small><b>${fq(op)}</b></div><div class="kpi" style="--c:#15803d"><small>Total IN</small><b>${fq(rows.reduce((a,r)=>a+r.in,0))}</b></div><div class="kpi" style="--c:#c62828"><small>Total OUT</small><b>${fq(rows.reduce((a,r)=>a+r.out,0))}</b></div><div class="kpi" style="--c:#0ea5a4"><small>Closing</small><b>${fq(bal)}</b></div></div>${table(cols,rows)}</div>`});
+};
+V.r_party=el=>{title('Party-wise Report');el.innerHTML=filterBar({party:2,item:1});
+ bindFilter(()=>{if(!P.fp){$('#rout').innerHTML='<div class="card empty">Select a party — all its purchases / sales / returns will be listed product-wise</div>';REPORT=null;return}
+  const rows=lineRows(['PUR','SAL','SRT','PRT']).map(r=>({...r,in:['Purchase','Sale Return'].includes(r.type)?r.qty:0,out:['Sale','Purch. Return'].includes(r.type)?r.qty:0}));
+  const cols=[C.date,{k:'type',l:'Type'},C.vno,C.g,{k:'ref',l:'Invoice / Note No.'},{k:'dc',l:'DC No.'},C.veh,C.item,C.brand,C.cat,SRC,{k:'in',l:'IN (to us)',n:1,t:1},{k:'out',l:'OUT (to party)',n:1,t:1}];
+  REPORT={title:'Party Report — '+pN(P.fp),sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};$('#rout').innerHTML=`<div class="card"><h3>👥 ${esc(pN(P.fp))}</h3>${table(cols,rows)}</div>`});
+};
+V.r_phy=el=>{title('Physical vs Book Stock');el.innerHTML=filterBar({item:1});
+ bindFilter(()=>{const gs=fGs();const rows=[];DB.vouchers.filter(v=>!v.deleted&&v.type==='PHY'&&gs.includes(v.godownId)&&v.date>=P.ff&&v.date<=P.ft).forEach(v=>v.lines.forEach(l=>{if(P.fi&&l.itemId!==P.fi)return;const it=I(l.itemId)||{};const d=l.qty-l.book;
+  if(match(P.fq,it.name,it.brand,v.vno,...(l.missing||[])))rows.push({date:dmy(v.date),vno:v.vno,g:gN(v.godownId),item:it.name,brand:it.brand||'',book:l.book,phy:l.qty,diff:d,st:d===0?'Matched':d<0?'Shortage':'Excess',miss:(l.missing||[]).join(', '),by:v.createdBy,_click:`viewV('${v.id}')`})}));
+  const cols=[C.date,C.vno,C.g,C.item,C.brand,{k:'book',l:'Book Stock',n:1,t:1},{k:'phy',l:'Physical',n:1,t:1},{k:'diff',l:'Difference',n:1,t:1,f:v=>`<b class="${v<0?'neg':v>0?'pos':''}">${fq(v)}</b>`},{k:'st',l:'Status',f:v=>`<span class="tag ${v==='Matched'?'ok':v==='Shortage'?'bad':'warn'}">${v}</span>`},{k:'miss',l:'Missing Serials',f:v=>`<span style="font-family:monospace;font-size:11px;white-space:normal;display:block;max-width:360px">${esc(v)}</span>`},{k:'by',l:'Counted By'}];
+  REPORT={title:'Physical vs Book',sub:gLabel(),cols,rows};$('#rout').innerHTML=`<div class="card"><h3>🧮 Physical Verification Result</h3>${table(cols,rows)}</div>`});
+};
+
+/* ---------- TALLY MATCH ---------- */
+V.tally=el=>{title('Tally Stock Match');
+ el.innerHTML=`<div class="hint"><b>How to export stock from Tally:</b> TallyPrime → <b>Display More Reports → Statements of Inventory → Godown Summary</b> (or Stock Summary) → select godown → <b>Alt+E Export → Excel</b>.<br>The file needs a <b>Product / Item Name (Particulars)</b> column and a <b>Quantity</b> column. If it also has a "Godown" column, all godowns are matched in one go. You can also copy from Tally / Excel and paste below.</div>
+ <div class="card"><div class="row">
+  <div class="f"><label>Godown (if the file has no Godown column)</label><select id="tg">${gOpts(true,'')}</select></div>
+  <div class="f" style="max-width:170px"><label>Stock As On</label><input type="date" id="td" value="${today()}"></div>
+  <div class="f"><label>Tally Excel / CSV file</label><input type="file" id="tf" accept=".xlsx,.xls,.csv,.txt"></div></div>
+  <div class="f" style="margin-top:10px"><label>Or paste here (Product [Tab] Qty  or  Product [Tab] Godown [Tab] Qty)</label><textarea id="tp" rows="4" placeholder="Solar Panel 540W	120 Nos&#10;Inverter 5KW	14 Nos"></textarea></div>
+  <div class="btns" style="margin-top:10px"><button class="btn p" id="tgo">⚖ Match Now</button><button class="btn" id="tfx">⬇ Excel</button><button class="btn" id="tpr">🖨 Print</button></div></div><div id="tout"></div>`;
+ $('#tgo').onclick=async()=>{let rows=[];try{if($('#tf').files[0])rows=await readFileTable($('#tf').files[0]);else if($('#tp').value.trim())rows=parseCSV($('#tp').value.trim());else return toast('Choose a file or paste data')}catch(e){return toast('File read error: '+e.message,4000)}
+  tallyMatch(rows,$('#tg').value,$('#td').value)};
+ $('#tfx').onclick=()=>REPORT&&exportXL('Tally_Stock_Match_'+today(),REPORT.cols,REPORT.rows,'Tally Match');$('#tpr').onclick=printReport;
+};
+function tallyMatch(rows,gSel,asOn){
+ let h=rows.findIndex(r=>r.some(c=>/particular|item|name|product/i.test(c))&&r.some(c=>/qty|quantity|closing|balance|stock/i.test(c)));
+ let ni=0,qi=1,gi=-1;if(h>=0){const H=rows[h].map(c=>String(c).toLowerCase());ni=H.findIndex(c=>/particular|item|name|product/.test(c));gi=H.findIndex(c=>/godown|location|warehouse/.test(c));
+  qi=H.findIndex(c=>/closing.*q|qty|quantity/.test(c));if(qi<0)qi=H.findIndex(c=>/closing|balance|stock/.test(c));rows=rows.slice(h+1)}
+ else if(rows[0]&&rows[0].length>=3&&rows[0][1]&&isNaN(parseFloat(rows[0][1]))){gi=1;qi=2}
+ const nameMap={};DB.items.forEach(i=>[i.name,i.alias,i.code].forEach(x=>{if(x)nameMap[String(x).trim().toLowerCase()]=i}));
+ const gMap={};DB.godowns.forEach(g=>{gMap[g.name.toLowerCase()]=g;gMap[g.code.toLowerCase()]=g});
+ const findG=s=>{s=String(s||'').trim().toLowerCase();if(!s)return null;return gMap[s]||DB.godowns.find(g=>g.name.toLowerCase().includes(s)||s.includes(g.name.toLowerCase().replace(/^(branch office|warehouse|head office)\s*:?\s*/,'')))};
+ const tally={},unk=[];
+ rows.forEach(r=>{const n=String(r[ni]||'').trim();if(!n||/^(grand )?total$/i.test(n))return;if(qi<0||r[qi]===undefined||String(r[qi]).trim()==='')return;const q=num(r[qi]);
+  const g=gi>=0?findG(r[gi]):null;const gid=g?g.id:(gSel||'ALL');const it=nameMap[n.toLowerCase()];
+  if(!it){unk.push({n,g:g?g.name:(gSel==='ALL'?'All Godowns':gN(gSel)),q});return}const k=it.id+'|'+gid;tally[k]=(tally[k]||0)+q});
+ const gIds=new Set(Object.keys(tally).map(k=>k.split('|')[1]));const out=[];
+ gIds.forEach(gid=>{const gs=gid==='ALL'?myG():[gid];const s=summary(gs,'1900-01-01',asOn,false);const seen=new Set();
+  Object.keys(tally).filter(k=>k.endsWith('|'+gid)).forEach(k=>{const id=k.split('|')[0];seen.add(id);const it=I(id);const a=(s.find(r=>r.itemId===id)||{}).cl||0;const d=a-tally[k];
+   out.push({item:it.name,brand:it.brand||'',g:gid==='ALL'?'All Godowns':gN(gid),tq:tally[k],aq:a,diff:d,st:Math.abs(d)<0.001?'Matched':d<0?'Short in Godown':'Excess in Godown'})});
+  s.filter(r=>!seen.has(r.itemId)&&Math.abs(r.cl)>0.001).forEach(r=>{const it=I(r.itemId);out.push({item:it.name,brand:it.brand||'',g:gid==='ALL'?'All Godowns':gN(gid),tq:0,aq:r.cl,diff:r.cl,st:'Not in Tally'})})});
+ unk.forEach(u=>out.push({item:u.n,brand:'',g:u.g,tq:u.q,aq:0,diff:-u.q,st:'Not in Item Master'}));
+ out.sort((a,b)=>(a.st==='Matched')-(b.st==='Matched')||Math.abs(b.diff)-Math.abs(a.diff));
+ const cols=[{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'g',l:'Godown'},{k:'tq',l:'Tally Qty',n:1,t:1},{k:'aq',l:'Godown App Qty',n:1,t:1},{k:'diff',l:'Difference (App − Tally)',n:1,t:1,f:v=>`<b class="${v<0?'neg':v>0?'pos':''}">${fq(v)}</b>`},{k:'st',l:'Status',f:v=>`<span class="tag ${v==='Matched'?'ok':/Short|Master/.test(v)?'bad':'warn'}">${v}</span>`}];
+ REPORT={title:'Tally vs Godown Stock Match',sub:'As on '+dmy(asOn),cols,rows:out};
+ const mis=out.filter(r=>r.st!=='Matched');log('TALLY MATCH',out.length+' products | '+mis.length+' differences','');save();
+ $('#tout').innerHTML=`<div class="grid kpis" style="margin-bottom:14px"><div class="kpi" style="--c:#15803d"><small>Matched</small><b>${out.length-mis.length}</b></div><div class="kpi" style="--c:#c62828"><small>Differences</small><b>${mis.length}</b></div><div class="kpi" style="--c:#b45309"><small>Short Qty</small><b>${fq(mis.filter(r=>r.diff<0).reduce((a,r)=>a-r.diff,0))}</b></div><div class="kpi" style="--c:#7c3aed"><small>Excess Qty</small><b>${fq(mis.filter(r=>r.diff>0).reduce((a,r)=>a+r.diff,0))}</b></div></div>
+ <div class="card"><h3>⚖ Result — As on ${dmy(asOn)}</h3>${table(cols,out)}<p class="mut" style="font-size:12px"><b>Short in Godown</b> = Tally shows more than the godown app (missing goods / goods out without entry / possible theft). <b>Excess in Godown</b> = godown has more (Tally entry pending). <b>Not in Tally</b> = godown has stock but the product is not in the Tally file.</p></div>`;
+}
+
+/* ---------- DELETE MANAGER (masters, barcode, serial no.) — every delete is recorded and goes to Google Sheet "Deleted" ---------- */
+function askReason(what){const r=prompt('Delete: '+what+'\n\nReason for deleting (saved in the Deleted log / Google Sheet):');return r&&r.trim()?r.trim():null}
+function recDel(kind,o){const d={id:uid('D'),t:new Date().toISOString(),by:ME.username,role:isAdmin()?'Admin':'Godown Manager',kind,party:o.party||'',product:o.product||'',code:o.code||'',godownId:o.godownId||'',ref:o.ref||'',qty:o.qty||'',reason:o.reason||'',extra:o.extra||''};
+ DB.deletions.push(d);touch('deletions',d);log('DELETE '+kind.toUpperCase(),[o.party,o.product,o.code,o.extra,'Reason: '+o.reason].filter(Boolean).join(' | '),o.godownId||'');save()}
+const myItemIds=()=>{if(isAdmin())return null;const S=new Set();DB.vouchers.forEach(v=>{if(!v.deleted&&(v.godownId===ME.godownId||v.toGodownId===ME.godownId))(v.lines||[]).forEach(l=>S.add(l.itemId))});return S};
+const scopeItems=L=>{const S=myItemIds();return S?L.filter(i=>S.has(i.id)):L};
+function usedElsewhere(id){return!isAdmin()&&DB.vouchers.some(v=>!v.deleted&&v.godownId!==ME.godownId&&v.toGodownId!==ME.godownId&&(v.lines||[]).some(l=>l.itemId===id))}
+function renField(field,label,old){if(!old)return toast('Select a '+label.toLowerCase());const L=scopeItems(DB.items.filter(i=>!i.deleted&&(i[field]||'')===old));if(!L.length)return toast('No product of your godown has this '+label.toLowerCase());
+ const nv=(prompt(`Rename ${label} "${old}" to:\n\n(${L.length} product(s)${isAdmin()?'':' of your godown'} will change)`,old)||'').trim();if(!nv||nv===old)return;
+ L.forEach(i=>{i[field]=nv;touch('items',i)});log('EDIT '+label.toUpperCase(),`${label}: "${old}" → "${nv}" | ${L.length} product(s): ${L.map(i=>i.name).slice(0,10).join('; ')}`);save();toast(`✓ ${label} renamed: ${old} → ${nv}`);render()}
+function delParty(id){const p=Pt(id);if(!p)return false;const n=DB.vouchers.filter(v=>!v.deleted&&v.partyId===id).length;
+ if(!confirm(`Delete party "${p.name}"?`+(n?`\n\nIt is used in ${n} entries — those entries stay as they are (party name is kept in history), but the party will no longer appear in lists.`:'')))return false;
+ const r=askReason('Party '+p.name);if(!r)return false;p.deleted=true;touch('parties',p);recDel('Party',{party:p.name,code:p.gstin||'',reason:r,extra:n?'Used in '+n+' entries':''});toast('🗑 Party deleted: '+p.name);render();return true}
+function delItem(id){const it=I(id);if(!it)return false;if(usedElsewhere(id)){alert(`"${it.name}" is also used in other godowns — only the Admin can delete it.\n\nYou can still edit its name / brand / category.`);return false}const st=summary(DB.godowns.map(g=>g.id),'1900-01-01','9999-12-31',true).filter(r=>r.itemId===id&&Math.abs(r.cl)>1e-9);
+ if(st.length){alert(`Cannot delete "${it.name}" — it still has stock:\n\n`+st.map(r=>gN(r.godownId)+': '+fq(r.cl)).join('\n')+'\n\nMake the stock zero first (sale / damage / transfer entry).');return false}
+ if(!confirm(`Delete product "${it.name}"?\n\nOld entries keep their history; the product will no longer appear in lists or scanning.`))return false;
+ const r=askReason('Product '+it.name);if(!r)return false;it.deleted=true;it.active=false;touch('items',it);recDel('Product',{product:it.name,code:it.serial?((it.serialPrefixes||[]).join(', ')||'serial-tracked'):(it.code||''),reason:r,extra:bcat(it)});toast('🗑 Product deleted: '+it.name);render();return true}
+function delField(field,label,val){if(!val)return toast('Select a '+label.toLowerCase());const L=scopeItems(DB.items.filter(i=>!i.deleted&&(i[field]||'')===val));if(!L.length)return toast('No product of your godown has this '+label.toLowerCase());
+ if(!confirm(`Delete ${label} "${val}"?\n\n${L.length} product(s) will have their ${label} cleared. Products and stock are NOT deleted.`))return;
+ const r=askReason(label+' '+val);if(!r)return;L.forEach(i=>{i[field]='';touch('items',i)});recDel(label,{product:label+': '+val,reason:r,extra:L.length+' product(s) cleared: '+L.map(i=>i.name).slice(0,10).join('; ')});toast(`🗑 ${label} deleted: ${val}`);render()}
+function delCode(raw){raw=String(raw||'').trim();if(!raw)return toast('Enter or scan a barcode / serial no.');
+ const it=DB.items.find(i=>!i.deleted&&(i.code||'').toLowerCase()===raw.toLowerCase());
+ if(it){if(!confirm(`Remove barcode ${it.code} from product "${it.name}"?\n\nThe product and its stock stay; only the barcode is removed.`))return;const r=askReason('Barcode '+it.code);if(!r)return;const c=it.code;it.code='';touch('items',it);recDel('Barcode',{product:it.name,code:c,reason:r});toast('🗑 Barcode removed: '+c);render();return}
+ const s=(extractSerials(raw)[0]||raw).toUpperCase();const rec=serialIndex()[s];
+ if(!rec)return toast('Not found: '+raw+' (no product barcode or serial no. matches)',4000);
+ if(rec.hist.length>1)return alert(`Cannot delete serial ${s} — it is already used in later entries:\n\n`+rec.hist.map(v=>dmy(v.date)+'  '+v.vno+'  '+T[v.type].n).join('\n')+'\n\nDelete / edit those entries first.');
+ const v=rec.hist[0];if(!isAdmin()&&v.godownId!==ME.godownId)return alert(`Serial ${s} belongs to ${gN(v.godownId)} — you can only change your own godown's stock.`);const l=v.lines.find(x=>(x.serials||[]).some(o=>o.s===s));const itm=I(l.itemId)||{};
+ if(!confirm(`Delete serial no. ${s}?\n\nProduct: ${itm.name}\nEntry: ${v.vno} ${v.refNo||''} (${T[v.type].n}) @ ${gN(v.godownId)}\n\nThis panel will be removed from that entry and stock goes down by 1.`))return;
+ const r=askReason('Serial No. '+s);if(!r)return;
+ l.serials=l.serials.filter(o=>o.s!==s);l.qty=Math.max(l.serials.length,num(l.qty)-1);
+ if(!(num(l.qty)>0))v.lines=v.lines.filter(x=>x!==l);
+ if(!v.lines.length){v.deleted=true;v.deletedBy=ME.username;v.deletedRole=isAdmin()?'Admin':'Godown Manager';v.deletedAt=new Date().toISOString();v.deleteReason='Last serial deleted: '+r}
+ v.editedBy=ME.username;v.editedAt=Date.now();touch('vouchers',v);
+ recDel('Serial No.',{product:itm.name,code:s,godownId:v.godownId,ref:v.vno+(v.refNo?' / '+v.refNo:''),qty:1,reason:r});toast('🗑 Serial deleted: '+s);render()}
+V.delmgr=el=>{title('Edit / Delete Manager');
+ const SC=scopeItems(DB.items.filter(i=>!i.deleted));const cats=[...new Set(SC.map(i=>i.group).filter(Boolean))].sort(),brands=[...new Set(SC.map(i=>i.brand).filter(Boolean))].sort();
+ const cnt=(f,v)=>SC.filter(i=>i[f]===v).length;
+ const card=(icon,t,d,body)=>`<div class="card" style="border-top:3px solid var(--acc2)"><h3>${icon} ${t}</h3><p class="mut" style="font-size:12.5px;margin-top:-4px">${d}</p>${body}</div>`;
+ el.innerHTML=`<div class="warnbox">⚠ ${isAdmin()?'Admin: all godowns.':'You can edit / delete for <b>'+esc(gN(ME.godownId))+'</b> only.'} Every edit is saved in the Audit Log (old → new); every delete asks for a <b>reason</b> and is saved with date, time, user and role in the <b>Delete Log</b> below and in the Google Sheet tab <b>"Deleted"</b> (after Cloud Sync).</div>
+ <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+ ${card('🏢','Edit / Delete Party','Old entries keep the party name; the party disappears from lists.',`<div class="row"><div class="f"><input id="dp" placeholder="Search party / GSTIN"></div><button class="btn" id="dpe">✏ Edit</button><button class="btn d" id="dpb">Delete</button></div>`)}
+ ${card('🏷️','Edit / Delete Product (name, brand, category, barcode)','Allowed only when its stock is zero in every godown.',`<div class="row"><div class="f"><input id="di" placeholder="Search product / brand"></div><button class="btn" id="die">✏ Edit</button><button class="btn d" id="dib">Delete</button></div>`)}
+ ${card('📂','Rename / Delete Category / Group','Clears the category from all its products (products and stock stay).',`<div class="row"><div class="f"><select id="dc"><option value="">-- Select category --</option>${cats.map(c=>`<option value="${esc(c)}">${esc(c)} (${cnt('group',c)})</option>`).join('')}</select></div><button class="btn" id="dce">✏ Rename</button><button class="btn d" id="dcb">Delete</button></div>`)}
+ ${card('🔖','Rename / Delete Brand','Clears the brand from all its products (products and stock stay).',`<div class="row"><div class="f"><select id="db"><option value="">-- Select brand --</option>${brands.map(c=>`<option value="${esc(c)}">${esc(c)} (${cnt('brand',c)})</option>`).join('')}</select></div><button class="btn" id="dbe">✏ Rename</button><button class="btn d" id="dbb">Delete</button></div>`)}
+ ${card('▦','Delete Product Barcode / Serial No.','Product barcode: removed from the product. Panel serial no.: removed from its IN entry (stock −1) — only if it is not used in a later sale / transfer.',`<div class="row"><div class="f"><input id="dcode" placeholder="Scan or type barcode / serial no."></div><button class="btn" id="dcam">📷</button><button class="btn d" id="dcodeb">Delete</button></div>`)}
+ </div>
+ <div class="card"><h3>📜 Delete Log <span class="mut" style="font-weight:400;font-size:12px">(masters, barcodes, serials and deleted entries)</span><button class="btn sm" id="dlx" style="margin-left:auto">⬇ Excel</button></h3><div id="dlog"></div></div>`;
+ let selP=null,selI=null;
+ picker($('#dp'),partySrc(),o=>{selP=o.id;$('#dp').value=o.label});
+ picker($('#di'),itemSrc(),o=>{selI=o.id;$('#di').value=o.label});
+ $('#dpb').onclick=()=>selP?delParty(selP):toast('Select a party');
+ $('#dib').onclick=()=>selI?delItem(selI):toast('Select a product');
+ $('#dcb').onclick=()=>delField('group','Category',$('#dc').value);
+ $('#dpe').onclick=()=>selP?editParty(selP):toast('Select a party');
+ $('#die').onclick=()=>selI?editItem(selI):toast('Select a product');
+ $('#dce').onclick=()=>renField('group','Category',$('#dc').value);
+ $('#dbe').onclick=()=>renField('brand','Brand',$('#db').value);
+ $('#dbb').onclick=()=>delField('brand','Brand',$('#db').value);
+ $('#dcodeb').onclick=()=>delCode($('#dcode').value);
+ $('#dcode').onkeydown=e=>{if(e.key==='Enter')delCode(e.target.value)};
+ $('#dcam').onclick=()=>scanner(c=>{$('#dcode').value=c});
+ const rows=DB.deletions.map(d=>({t:d.t,kind:d.kind,what:[d.party,d.product].filter(Boolean).join(' / '),code:d.code,g:gN(d.godownId),ref:d.ref,qty:d.qty,reason:d.reason,extra:d.extra,by:d.by,role:d.role}))
+  .concat(DB.vouchers.filter(v=>v.deleted).map(v=>({t:v.deletedAt||'',kind:T[v.type].n+' entry',what:[pN(v.partyId),v.lines.map(l=>(I(l.itemId)||{}).name).join(', ')].filter(Boolean).join(' / '),code:v.lines.flatMap(l=>(l.serials||[]).map(o=>o.s)).join(', '),g:gN(v.godownId),ref:v.vno+(v.refNo?' / '+v.refNo:''),qty:v.lines.reduce((a,l)=>a+num(l.qty),0),reason:v.deleteReason||'',extra:'',by:v.deletedBy||'',role:v.deletedRole||''})))
+  .sort((a,b)=>String(b.t).localeCompare(String(a.t))).map(r=>({...r,t:r.t?new Date(r.t).toLocaleString('en-IN'):''}));
+ const cols=[{k:'t',l:'Deleted On'},{k:'by',l:'Deleted By'},{k:'role',l:'Role'},{k:'kind',l:'What',f:v=>`<span class="tag bad">${esc(v)}</span>`,x:v=>v},{k:'what',l:'Party / Product / Category'},{k:'code',l:'Barcode / Serial Nos.',f:v=>`<span style="font-family:monospace;font-size:11px;white-space:normal;display:block;max-width:280px">${esc(v)}</span>`,x:v=>v},{k:'g',l:'Godown'},{k:'ref',l:'Entry / Ref'},{k:'qty',l:'Qty',n:1,f:v=>v===''||v==null?'':fq(v)},{k:'reason',l:'Reason'},{k:'extra',l:'Details'}];
+ $('#dlog').innerHTML=table(cols,rows);$('#dlx').onclick=()=>exportXL('Delete_Log_'+today(),cols,rows,'Deleted');
+};
+
+/* ---------- AUDIT ---------- */
+V.audit=el=>{title('Audit Log');el.innerHTML=filterBar({});
+ bindFilter(()=>{const gs=fGs();const rows=DB.audit.filter(a=>a.t.slice(0,10)>=P.ff&&a.t.slice(0,10)<=P.ft&&(!a.godownId||gs.includes(a.godownId))&&match(P.fq,a.user,a.action,a.detail)).sort((a,b)=>b.t.localeCompare(a.t)).map(a=>({t:new Date(a.t).toLocaleString('en-IN'),user:a.user,action:a.action,g:gN(a.godownId),detail:a.detail}));
+  const cols=[{k:'t',l:'Time'},{k:'user',l:'User'},{k:'action',l:'Action',f:v=>`<span class="tag ${v==='DELETE'?'bad':v==='EDIT'?'warn':'inf'}">${v}</span>`},{k:'g',l:'Godown'},{k:'detail',l:'Detail',f:v=>`<span style="white-space:normal;display:block;max-width:600px">${esc(v)}</span>`}];
+  REPORT={title:'Audit Log',cols,rows};$('#rout').innerHTML=`<div class="card"><h3>🛡️ Who did what — every create / edit / delete / receive</h3>${table(cols,rows)}</div>`});
+};
+
+/* ---------- ITEM MASTER (Product Name, Brand, Category, Serial / Barcode, Qty) ---------- */
+V.items=el=>{title('Item Master (Products)');
+ el.innerHTML=`<div class="card"><div class="row"><div class="f"><input id="isq" placeholder="Search product / brand / category / barcode…" value="${esc(P.q||'')}"></div><button class="btn p" id="inew">＋ New Product</button><button class="btn" id="ixl">⬇ Excel</button></div></div><div class="card" id="il"></div>`;
+ const draw=()=>{const q=$('#isq').value.trim();P.q=q;const all=summary(myG(),'1900-01-01','9999-12-31',false);const idx=serialIndex();const gs=new Set(myG());
+  const rows=DB.items.filter(i=>!i.deleted&&match(q,i.name,i.brand,i.group,i.code,i.alias)).sort((a,b)=>a.name.localeCompare(b.name)).map(i=>({name:i.name,brand:i.brand||'',cat:i.group||'',code:i.serial?('Serial: '+((i.serialPrefixes||[]).join(', ')||'per unit')):(i.code||''),sr:i.serial?Object.values(idx).filter(r=>r.itemId===i.id&&r.status==='In Stock'&&gs.has(r.g)).length:'',stk:(all.find(r=>r.itemId===i.id)||{}).cl||0,st:i.active===false?'Inactive':'',_click:`editItem('${i.id}')`}));
+  const cols=[{k:'name',l:'Product Name'},{k:'brand',l:'Brand Name'},{k:'cat',l:'Product Category'},{k:'code',l:'Serial / Barcode No.'},{k:'stk',l:'Qty (In Stock)',n:1,t:1,f:v=>`<b>${fq(v)}</b>`},{k:'sr',l:'Serials In Stock',n:1,f:v=>v===''?'':fq(v)},{k:'st',l:''}];
+  REPORT={title:'Item Master',cols,rows};$('#il').innerHTML=`<h3>🏷️ ${rows.length} products</h3>`+table(cols,rows)};
+ $('#isq').oninput=draw;if($('#inew'))$('#inew').onclick=()=>editItem(null);$('#ixl').onclick=()=>{P.fg='ALL';P.ft=today();exportStockWithSerials()};draw();
+};
+function editItem(id){const it=id?I(id):{name:'',brand:'',group:'',code:'',unit:'Nos',active:true,serial:true,serialPrefixes:[]};
+ const cats=[...new Set(DB.items.map(i=>i.group).filter(Boolean))],brands=[...new Set(DB.items.map(i=>i.brand).filter(Boolean))];
+ const stk=id?myG().reduce((a,g)=>a+stockOf(id,g),0):0;
+ const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} Product</h3><div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+  <div class="f" style="grid-column:1/-1"><label>Product Name *</label><input id="it_name" value="${esc(it.name)}"></div>
+  <div class="f"><label>Brand Name</label><input id="it_brand" list="it_bl" value="${esc(it.brand||'')}"><datalist id="it_bl">${brands.map(b=>`<option>${esc(b)}</option>`).join('')}</datalist></div>
+  <div class="f"><label>Product Category</label><input id="it_group" list="it_cl" value="${esc(it.group||'')}"><datalist id="it_cl">${cats.map(b=>`<option>${esc(b)}</option>`).join('')}</datalist></div>
+  <div class="f"><label>Tracking</label><select id="it_serial"><option value="1">Serial No. on every unit (e.g. solar panel QR)</option><option value="0" ${it.serial?'':'selected'}>One barcode for the product</option></select></div>
+  <div class="f" id="w_pre"><label>Serial No. starts with (auto-link new serials)</label><input id="it_pre" value="${esc((it.serialPrefixes||[]).join(', '))}" placeholder="e.g. WS092690784" style="font-family:monospace"></div>
+  <div class="f" id="w_code"><label>Barcode No.</label><div style="display:flex;gap:6px"><input id="it_code" value="${esc(it.code||'')}"><button class="btn sm" id="itgen" title="Auto generate">Auto</button><button class="btn sm" id="itsc">📷</button></div></div>
+  <div class="f"><label>Qty (current stock)</label><input value="${fq(stk)}" readonly title="Qty changes only through stock entries (scan IN / OUT)"></div>
+  <div class="f"><label>Status</label><select id="it_active"><option value="1">Active</option><option value="0" ${it.active===false?'selected':''}>Inactive</option></select></div></div>
+  <div id="itbc" style="margin-top:12px;max-width:260px"></div><div class="btns" style="justify-content:flex-end;margin-top:14px">${id?'<button class="btn d" id="itdel">🗑 Delete Product</button>':''}<button class="btn p" id="itsv">💾 Save</button></div>`);
+ const sw=()=>{const s=m.querySelector('#it_serial').value==='1';m.querySelector('#w_pre').style.display=s?'':'none';m.querySelector('#w_code').style.display=s?'none':'';bc()};
+ const bc=()=>{const c=m.querySelector('#it_code').value.trim();m.querySelector('#itbc').innerHTML=c&&m.querySelector('#it_serial').value==='0'?barcodeSVG(c,40)+`<div style="text-align:center;font-family:monospace">${esc(c)}</div>`:''};
+ m.querySelector('#it_serial').onchange=sw;m.querySelector('#it_code').oninput=bc;sw();
+ m.querySelector('#itgen').onclick=()=>{let n=DB.items.length+1;let c;do{c='GS'+String(n++).padStart(6,'0')}while(DB.items.some(x=>x.code===c));m.querySelector('#it_code').value=c;bc()};
+ m.querySelector('#itsc').onclick=()=>scanner(c=>{m.querySelector('#it_code').value=c;bc()});
+ if(m.querySelector('#itdel'))m.querySelector('#itdel').onclick=()=>{if(delItem(id))m.close()};
+ m.querySelector('#itsv').onclick=()=>{const g=k=>m.querySelector('#it_'+k).value.trim();const n=g('name');if(!n)return toast('Product name is required');
+  if(DB.items.some(x=>x.id!==id&&x.name.toLowerCase()===n.toLowerCase()))return toast('A product with this name already exists');
+  const ser=g('serial')==='1';const c=ser?'':g('code');if(c&&DB.items.some(x=>x.id!==id&&(x.code||'').toLowerCase()===c.toLowerCase()))return toast('This barcode is used by another product');
+  const r={...it,id:id||uid('I'),name:n,brand:g('brand'),group:g('group'),code:c,unit:it.unit||'Nos',active:g('active')==='1',serial:ser,serialPrefixes:ser?g('pre').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean):[]};
+  put('items',r);if(id){const ch=[['name','Name'],['brand','Brand'],['group','Category'],['code','Barcode'],['active','Active']].filter(([k])=>String(it[k]??'')!==String(r[k]??'')).map(([k,l])=>`${l}: "${it[k]??''}" → "${r[k]??''}"`);log('ITEM EDIT',r.name+(ch.length?' | '+ch.join(' | '):' | no change'))}else log('ITEM NEW',r.name+(r.brand?' | '+r.brand:''));save();m.close();render();toast('✓ Product saved')};
+}
+
+/* ---------- PARTY MASTER ---------- */
+V.parties=el=>{title('Party Master');
+ el.innerHTML=`<div class="card"><div class="row"><div class="f"><input id="psq" placeholder="Search party…"></div><button class="btn p" id="pnew">＋ New Party</button></div></div><div class="card" id="pl"></div>`;
+ const draw=()=>{const q=$('#psq').value.trim();const rows=DB.parties.filter(p=>!p.deleted&&match(q,p.name,p.alias,p.gstin,p.city,p.phone)).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({...p,state:STATES[partyState(p)]||'',_click:isAdmin()?`editParty('${p.id}')`:''}));
+  $('#pl').innerHTML=`<h3>🏢 ${rows.length} parties</h3>`+table([{k:'name',l:'Party Name'},{k:'alias',l:'Alias'},{k:'type',l:'Type'},{k:'gstin',l:'GSTIN'},{k:'state',l:'State'},{k:'city',l:'City'},{k:'phone',l:'Phone'}],rows)};
+ $('#psq').oninput=draw;$('#pnew').onclick=()=>editParty(null,()=>render());draw();
+};
+function editParty(id,cb){const p=id?Pt(id):{name:'',alias:'',type:'Customer',gstin:'',address:'',city:'',phone:''};
+ const f=(k,l)=>`<div class="f"><label>${l}</label><input id="pt_${k}" value="${esc(p[k]||'')}"></div>`;
+ const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} Party</h3><div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">${f('name','Party Name *')}${f('alias','Alias')}<div class="f"><label>Type</label><select id="pt_type">${['Customer','Supplier','Both'].map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join('')}</select></div>${f('gstin','GSTIN')}${f('address','Address')}${f('city','City')}${f('phone','Phone')}</div><div class="btns" style="justify-content:flex-end;margin-top:14px">${id?'<button class="btn d" id="ptdel">🗑 Delete Party</button>':''}<button class="btn p" id="ptsv">💾 Save</button></div>`);
+ if(m.querySelector('#ptdel'))m.querySelector('#ptdel').onclick=()=>{if(delParty(id))m.close()};
+ m.querySelector('#ptsv').onclick=()=>{const g=k=>m.querySelector('#pt_'+k).value.trim();if(!g('name'))return toast('Party name is required');
+  if(DB.parties.some(x=>x.id!==id&&x.name.toLowerCase()===g('name').toLowerCase()))return toast('This party already exists');
+  const gs=g('gstin').toUpperCase();if(gs&&!/^\d{2}[A-Z0-9]{13}$/.test(gs))return toast('GSTIN should be 15 characters (e.g. 09ABCDE1234F1Z5)');
+  const r={...p,id:id||uid('P'),name:g('name'),alias:g('alias'),type:g('type'),gstin:gs,address:g('address'),city:g('city'),phone:g('phone')};put('parties',r);if(id){const ch=[['name','Name'],['type','Type'],['gstin','GSTIN'],['address','Address'],['city','City'],['phone','Phone']].filter(([k])=>String(p[k]??'')!==String(r[k]??'')).map(([k,l])=>`${l}: "${p[k]??''}" → "${r[k]??''}"`);log('PARTY EDIT',r.name+(ch.length?' | '+ch.join(' | '):' | no change'))}else log('PARTY NEW',r.name);save();m.close();if(cb)cb(r);else render();toast('✓ Party saved')};
+}
+
+/* ---------- BARCODE LABELS ---------- */
+V.labels=el=>{title('Barcode Labels');
+ el.innerHTML=`<div class="hint">Select items → set copies → <b>Print</b>. Stick the label (62×34 mm) on goods / racks / cartons. Items without a barcode can get an <b>auto barcode</b>. (Serial-tracked modules already carry the manufacturer's QR — no label needed.)</div>
+ <div class="card"><div class="row"><div class="f"><input id="lq" placeholder="Search items…"></div><div class="f" style="max-width:120px"><label>Copies each</label><input id="lc" type="number" value="1" min="1"></div><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="lstk"> Copies = available stock</label>${isAdmin()?'<button class="btn" id="lauto">Auto barcode (blank ones)</button>':''}<button class="btn p" id="lpr">🖨 Print Labels</button></div></div>
+ <div class="card"><div class="tw"><table><thead><tr><th><input type="checkbox" id="lall"></th><th>Product</th><th>Brand • Category</th><th>Barcode</th><th class="n">Stock</th></tr></thead><tbody id="lbb"></tbody></table></div></div>`;
+ const sel=P.lsel||(P.lsel=new Set());const all=summary(myG(),'1900-01-01','9999-12-31',false);const stk=id=>(all.find(r=>r.itemId===id)||{}).cl||0;
+ const draw=()=>{const q=$('#lq').value.trim();$('#lbb').innerHTML=DB.items.filter(i=>!i.deleted&&match(q,i.name,i.alias,i.code)).map(i=>`<tr><td><input type="checkbox" data-id="${i.id}" ${sel.has(i.id)?'checked':''}></td><td>${esc(i.name)}</td><td>${esc(bcat(i))}</td><td>${i.code?esc(i.code):'<span class="tag warn">No code</span>'}</td><td class="n">${fq(stk(i.id))}</td></tr>`).join('');
+  $$('#lbb input').forEach(c=>c.onchange=()=>{c.checked?sel.add(c.dataset.id):sel.delete(c.dataset.id)})};
+ $('#lq').oninput=draw;$('#lall').onchange=e=>{$$('#lbb input').forEach(c=>{c.checked=e.target.checked;c.checked?sel.add(c.dataset.id):sel.delete(c.dataset.id)})};
+ if($('#lauto'))$('#lauto').onclick=()=>{let n=1,cnt=0;DB.items.forEach(i=>{if(!i.code){let c;do{c='GS'+String(n++).padStart(6,'0')}while(DB.items.some(x=>x.code===c));i.code=c;touch('items',i);cnt++}});save();draw();toast(cnt+' item(s) got a barcode')};
+ $('#lpr').onclick=()=>{const L=DB.items.filter(i=>sel.has(i.id));if(!L.length)return toast('Select items first');if(L.some(i=>!i.code))return toast('Some selected items have no barcode');const cp=Math.max(1,+$('#lc').value||1);
+  let h='<div class="lbl-sheet">';L.forEach(i=>{const n=$('#lstk').checked?Math.max(1,Math.ceil(stk(i.id))):cp;for(let k=0;k<Math.min(n,500);k++)h+=`<div class="lbl"><div class="nm">${esc(i.name)}</div><div class="al">${esc(bcat(i))}</div>${barcodeSVG(i.code,40)}<div class="cd">${esc(i.code)}</div></div>`});printHTML(h+'</div>')};
+ draw();
+};
+
+/* ---------- IMPORT / EXPORT ---------- */
+const TPL={items:['Product Name','Brand Name','Product Category','Serial Tracked (Yes/No)','Serial No Starts With','Barcode No'],opening:['Product Name','Godown Code','Qty','Serial No','Pallet No'],parties:['Party Name','Type (Customer/Supplier/Both)','GSTIN','Address','City','Phone']};
+V.import=el=>{title('Import / Export');
+ el.innerHTML=`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+ ${[['items','🏷️ Product (Item Master) Import','Fill the template or export Stock Items from Tally (Alt+E → Excel). A product with the same name is updated.'],['opening','📦 Opening Stock Import','Godown-wise starting stock. Godown codes: '+DB.godowns.map(g=>g.code).join(', ')+'. For panels / serial products put ONE serial per row (or several serials comma-separated in one cell) — Qty is counted automatically.'],['parties','🏢 Party Master Import','Customer / supplier list']].map(([k,t,d])=>`<div class="card"><h3>${t}</h3><p class="mut" style="font-size:12.5px">${d}</p><p style="font-size:12px">Columns: <code>${TPL[k].join(' | ')}</code></p>${k==='opening'?`<div class="f" style="margin-bottom:8px"><label>Opening Date</label><input type="date" id="opd" value="${fyStart()}"></div>`:''}<div class="btns"><button class="btn" onclick="tplDL('${k}')">⬇ Template</button><label class="btn p">⬆ Upload Excel / CSV<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="doImport('${k}',this)"></label></div></div>`).join('')}
+ <div class="card"><h3>📥 Load Stock Entry File (.json)</h3><p class="mut" style="font-size:12.5px">Load a ready-made entry file (purchase / opening stock with serial numbers). Products and parties are matched by name; entries already entered and serials already in stock are skipped.</p><div class="btns"><label class="btn p">⬆ Load Entry File<input type="file" accept=".json" style="display:none" onchange="importEntryFile(this)"></label></div></div>
+ <div class="card"><h3>💾 Backup / Restore</h3><p class="mut" style="font-size:12.5px">Download the full data (JSON) — take a backup every day. Restore brings an old backup back.</p><div class="btns"><button class="btn p" id="bk">⬇ Download Backup</button><label class="btn d">⬆ Restore<input type="file" accept=".json" style="display:none" id="rs"></label></div></div>
+ <div class="card"><h3>📤 Export</h3><p class="mut" style="font-size:12.5px">All stock entries line-wise with serial numbers, or the full serial register, in Excel.</p><div class="btns"><button class="btn p" id="exall">⬇ All Entries (Excel)</button><button class="btn" id="exser">Serial Register →</button></div></div></div>`;
+ $('#bk').onclick=()=>{dl('GodownStock_Backup_'+today()+'.json',JSON.stringify(DB),'application/json');log('BACKUP','Downloaded','')};
+ $('#rs').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d.godowns||!d.vouchers)throw new Error('Invalid file');if(!confirm('Current data will be replaced. Continue?'))return;DB=d;save(false);toast('Restored');setTimeout(()=>location.reload(),800)}catch(err){toast('Restore failed: '+err.message)}};
+ $('#exall').onclick=()=>{P.ff='1900-01-01';P.ft='9999-12-31';P.fg='ALL';P.fi='';P.fp='';P.fq='';const rows=lineRows(Object.keys(T).filter(t=>t!=='PHY'));
+  exportXL('All_Stock_Entries_'+today(),[{k:'date',l:'Date'},{k:'type',l:'Type'},{k:'vno',l:'Voucher No'},{k:'g',l:'Godown'},{k:'to',l:'To Godown'},{k:'party',l:'Party'},{k:'ref',l:'Invoice / Ref No'},{k:'invDate',l:'Invoice Date'},{k:'ewb',l:'e-Way Bill'},{k:'dc',l:'DC No'},{k:'veh',l:'Vehicle'},{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},{k:'qty',l:'Qty',n:1},{k:'serials',l:'Serial Nos'},{k:'by',l:'Entered By'}],rows,'Entries')};
+ $('#exser').onclick=()=>go('r_serial');
+};
+async function importEntryFile(inp){const f=inp.files[0];if(!f)return;let d;try{d=JSON.parse(await f.text())}catch(e){return toast('Invalid file')}inp.value='';
+ if(d.format!=='gsm-entries-v1')return toast('This is not a stock entry file');if(!isAdmin())return toast('Only the admin can load entry files');
+ const r=applyEntryData(d,f.name);
+ alert(`Entry file loaded\n\nNew products: ${r.ni}\nNew parties: ${r.np}\nEntries added: ${r.nv}\n\n${r.done.join('\n')}`+(r.skip.length?`\n\nSkipped (${r.skip.length}):\n`+r.skip.slice(0,12).join('\n'):''));go('r_summary');
+}
+function applyEntryData(d,src){
+ const im={},pm={};let ni=0,np=0,nv=0;const skip=[],done=[];const lc=x=>String(x||'').trim().toLowerCase();
+ (d.items||[]).forEach(x=>{let it=DB.items.find(i=>lc(i.name)===lc(x.name)||(x.alias&&lc(i.alias)===lc(x.alias)));
+  if(!it){it={id:uid('I'),unit:'Nos',active:true,code:'',alias:'',brand:'',group:'',serial:false,serialPrefixes:[],...x};delete it.key;put('items',it);ni++}
+  else{if(x.serial)it.serial=true;if(x.serialPrefixes)it.serialPrefixes=[...new Set([...(it.serialPrefixes||[]),...x.serialPrefixes])];if(!it.brand&&x.brand)it.brand=x.brand;if(!it.group&&x.group)it.group=x.group;touch('items',it)}
+  im[x.key]=it.id});
+ (d.parties||[]).forEach(x=>{let p=DB.parties.find(q=>lc(q.name)===lc(x.name)||(x.gstin&&lc(q.gstin)===lc(x.gstin)));if(!p){p={id:uid('P'),...x};delete p.key;put('parties',p);np++}pm[x.key]=p.id});
+ const idx=serialIndex();
+ (d.vouchers||[]).forEach(x=>{const g=DB.godowns.find(g=>g.code===x.godownCode);if(!g){skip.push('Godown code '+x.godownCode+' not found');return}
+  const partyId=x.party?pm[x.party]:'';
+  if(x.refNo&&DB.vouchers.some(v=>!v.deleted&&v.type===x.type&&v.partyId===partyId&&lc(v.refNo)===lc(x.refNo))){skip.push(T[x.type].n+' '+x.refNo+' is already entered');return}
+  if(x.type==='OPN'&&!x.refNo&&(x.lines||[]).every(l=>(l.serials||[]).length&&(l.serials||[]).every(o=>idx[o.s]))){skip.push('Opening stock serials are already in the system');return}
+  const lines=(x.lines||[]).map(l=>{const ser=(l.serials||[]).filter(o=>{const r=idx[o.s];if(r&&['In Stock','In Transit'].includes(r.status)){skip.push(o.s+' already '+r.status);return false}return true});return{itemId:im[l.item],qty:Math.max(num(l.qty),ser.length),batch:'',serials:ser}}).filter(l=>l.itemId&&l.qty>0);
+  if(!lines.length)return;
+  const v={id:uid('V'),type:x.type,date:x.date,godownId:g.id,vno:nextVno(x.type,g.id),partyId,lines,createdBy:ME?ME.username:'admin',createdAt:Date.now()};
+  ['refNo','refNo2','invDate','ewb','vehicle','dcNo','lr','transporter','orderNo','narration','reason'].forEach(k=>{if(x[k])v[k]=x[k]});
+  put('vouchers',v);nv++;done.push(`${v.vno} — ${T[v.type].n}${v.refNo?' '+v.refNo:''}: ${fq(vTotals(v).qty)} qty (${vTotals(v).serials} serials) @ ${g.name}`)});
+ log('IMPORT ENTRIES',src+' | '+nv+' entries | '+ni+' new products','');save();
+ return{ni,np,nv,done,skip};
+}
+function tplDL(k){exportXL('Template_'+k,TPL[k].map((l,i)=>({k:'c'+i,l})),[],k)}
+async function doImport(k,inp){const f=inp.files[0];if(!f)return;let rows;try{rows=await readFileTable(f)}catch(e){return toast('Read failed: '+e.message+' — try CSV',4000)}
+ const h=rows.findIndex(r=>r.some(c=>/name|particular|item|product|party/i.test(c)));if(h<0)return toast('Header row not found');const H=rows[h].map(c=>String(c).toLowerCase().trim());const body=rows.slice(h+1);
+ const col=(...re)=>H.findIndex(c=>re.some(r=>r.test(c)));let n=0,u=0,er=[];
+ if(k==='items'){const ci={name:col(/product name|item name|^name|particular/),brand:col(/brand/),group:col(/categ|group|under/),ser:col(/serial track|tracked/),pre:col(/starts|prefix/),code:col(/barcode|part ?no|^code/)};
+  body.forEach(r=>{const nm=String(r[ci.name]||'').trim();if(!nm)return;const v=i=>i>=0?String(r[i]||'').trim():'';let it=DB.items.find(x=>x.name.toLowerCase()===nm.toLowerCase());
+   const d={name:nm,brand:v(ci.brand),group:v(ci.group),code:v(ci.code)};if(ci.ser>=0&&v(ci.ser))d.serial=/^y/i.test(v(ci.ser));if(ci.pre>=0&&v(ci.pre))d.serialPrefixes=v(ci.pre).split(',').map(x=>x.trim().toUpperCase()).filter(Boolean);
+   if(it){Object.keys(d).forEach(x=>{if(d[x]!=='')it[x]=d[x]});touch('items',it);u++}else{put('items',{id:uid('I'),unit:'Nos',active:true,serial:true,serialPrefixes:[],...d});n++}})}
+ if(k==='parties'){const ci={name:col(/party|^name/),type:col(/type/),gstin:col(/gst/),address:col(/address/),city:col(/city/),phone:col(/phone|mobile/)};
+  body.forEach(r=>{const nm=String(r[ci.name]||'').trim();if(!nm)return;const v=i=>i>=0?String(r[i]||'').trim():'';let p=DB.parties.find(x=>x.name.toLowerCase()===nm.toLowerCase());const d={name:nm,type:/supp/i.test(v(ci.type))?'Supplier':/both/i.test(v(ci.type))?'Both':'Customer',gstin:v(ci.gstin).toUpperCase(),address:v(ci.address),city:v(ci.city),phone:v(ci.phone)};
+   if(p){Object.assign(p,d);touch('parties',p);u++}else{put('parties',{id:uid('P'),...d});n++}})}
+ if(k==='opening'){const ci={name:col(/product|item|name|particular/),g:col(/godown|location/),q:col(/qty|quantity/),s:col(/serial/),p:col(/pallet|box/)};const by={};const date=$('#opd').value||fyStart();const idx=serialIndex();const seen=new Set();
+  body.forEach((r,ix)=>{const nm=String(r[ci.name]||'').trim();if(!nm)return;const it=findItemByCode(nm);const gc=String(r[ci.g]||'').trim().toLowerCase();const g=DB.godowns.find(x=>x.code.toLowerCase()===gc||x.name.toLowerCase()===gc);const rn='Row '+(ix+h+2);
+   if(!it){er.push(rn+': product "'+nm+'" not in Item Master');return}if(!g){er.push(rn+': godown "'+gc+'" is wrong');return}
+   const L=by[g.id]=by[g.id]||[];
+   const ss=ci.s>=0?(extractSerials(r[ci.s]).length?extractSerials(r[ci.s]):String(r[ci.s]||'').split(/[,;\s]+/).map(x=>x.trim().toUpperCase()).filter(Boolean)):[];
+   if(it.serial||ss.length){if(!ss.length){er.push(rn+': '+it.name+' is serial-tracked — serial no. missing');return}
+    let l=L.find(x=>x.itemId===it.id);if(!l){l={itemId:it.id,qty:0,serials:[]};L.push(l)}
+    ss.forEach(s=>{if(seen.has(s)||(idx[s]&&idx[s].status==='In Stock')){er.push(rn+': duplicate serial '+s);return}seen.add(s);l.serials.push({s,p:ci.p>=0?String(r[ci.p]||'').trim():''})});l.qty=l.serials.length;if(!it.serial){it.serial=true;touch('items',it)}}
+   else L.push({itemId:it.id,qty:num(r[ci.q]),serials:[]})});
+  Object.keys(by).forEach(g=>{const lines=by[g].filter(l=>l.qty>0);if(!lines.length)return;put('vouchers',{id:uid('V'),type:'OPN',date,godownId:g,vno:nextVno('OPN',g),lines,createdBy:ME.username,createdAt:Date.now(),narration:'Imported opening stock'});n+=lines.length})}
+ log('IMPORT',k+' | new '+n+' | updated '+u+(er.length?' | errors '+er.length:''),'');save();inp.value='';
+ alert(`Import complete (${k})\nNew: ${n}\nUpdated: ${u}`+(er.length?`\n\nErrors (${er.length}):\n`+er.slice(0,15).join('\n'):''));
+}
+
+/* ---------- USERS & GODOWNS ---------- */
+V.users=el=>{title('Users & Godowns');
+ el.innerHTML=`<div class="card"><h3>🏬 Godowns <button class="btn sm" id="gnew" style="margin-left:auto">＋ Add Godown</button></h3>${table([{k:'code',l:'Code'},{k:'name',l:'Godown Name'},{k:'u',l:'Manager Login(s)'},{k:'url',l:'Server URL',f:v=>v?'<span class="tag ok">✓ Set</span>':'<span class="mut">main</span>'},{k:'st',l:'Status'}],DB.godowns.map(g=>({...g,url:g.syncUrl||'',u:DB.users.filter(u=>u.godownId===g.id).map(u=>u.username).join(', '),st:g.active===false?'Inactive':'Active',_click:`editGodown('${g.id}')`})))}</div>
+ <div class="card"><h3>🔐 Users <button class="btn sm" id="unew" style="margin-left:auto">＋ Add User</button></h3>${table([{k:'username',l:'Username'},{k:'name',l:'Name'},{k:'role',l:'Role',f:v=>`<span class="tag ${v==='admin'?'bad':'inf'}">${v}</span>`},{k:'g',l:'Godown (only this is visible)'},{k:'st',l:'Status'}],DB.users.map(u=>({...u,g:u.role==='admin'?'ALL':gN(u.godownId),st:u.active===false?'Disabled':'Active',_click:`editUser('${u.id}')`})))}
+ <p class="mut" style="font-size:12px">Default passwords: admin@123, ash@123, lkp@123, stp@123, khb@123, ndg@123, vrd@123 — <b>change them immediately</b>. A godown manager can only see their own godown.</p></div>`;
+ $('#gnew').onclick=()=>editGodown(null);$('#unew').onclick=()=>editUser(null);
+};
+function editGodown(id){const g=id?G(id):{name:'',code:'',active:true};
+ const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} Godown</h3><div class="grid" style="grid-template-columns:2fr 1fr;gap:12px"><div class="f"><label>Name</label><input id="gn" value="${esc(g.name)}"></div><div class="f"><label>Short Code (used in voucher no.)</label><input id="gc" value="${esc(g.code)}" maxlength="5"></div><div class="f"><label>Status</label><select id="ga"><option value="1">Active</option><option value="0" ${g.active===false?'selected':''}>Inactive</option></select></div></div><div class="btns" style="justify-content:flex-end;margin-top:14px"><button class="btn p" id="gsv">Save</button></div>`);
+ m.querySelector('#gsv').onclick=()=>{const n=m.querySelector('#gn').value.trim(),c=m.querySelector('#gc').value.trim().toUpperCase();if(!n||!c)return toast('Name and code are both required');if(DB.godowns.some(x=>x.id!==id&&x.code===c))return toast('This code is already used');
+  put('godowns',{...g,id:id||uid('G'),name:n,code:c,active:m.querySelector('#ga').value==='1'});log('GODOWN',n,'');save();m.close();buildNav();render()};
+}
+function editUser(id){const u=id?DB.users.find(x=>x.id===id):{username:'',name:'',role:'manager',godownId:DB.godowns[0].id,active:true};
+ const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} User</h3><div class="grid" style="grid-template-columns:1fr 1fr;gap:12px"><div class="f"><label>Username</label><input id="uu" value="${esc(u.username)}" ${id?'readonly':''}></div><div class="f"><label>Full Name</label><input id="un" value="${esc(u.name)}"></div>
+ <div class="f"><label>Role</label><select id="ur"><option value="manager">Godown Manager</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin (sees everything)</option></select></div><div class="f"><label>Godown</label><select id="ug">${DB.godowns.map(g=>`<option value="${g.id}" ${u.godownId===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}</select></div>
+ <div class="f"><label>${id?'New Password (blank = keep same)':'Password'}</label><input id="up" type="text"></div><div class="f"><label>Status</label><select id="ua"><option value="1">Active</option><option value="0" ${u.active===false?'selected':''}>Disabled</option></select></div></div><div class="btns" style="justify-content:flex-end;margin-top:14px"><button class="btn p" id="usv">Save</button></div>`);
+ m.querySelector('#usv').onclick=()=>{const g=k=>m.querySelector('#'+k).value.trim();const un=g('uu').toLowerCase();if(!un)return toast('Enter a username');if(!id&&DB.users.some(x=>x.username===un))return toast('This username already exists');if(!id&&!g('up'))return toast('Enter a password');
+  if(id===ME.id&&g('ur')!=='admin')return toast('You cannot remove your own admin role');
+  const r={...u,id:id||uid('U'),username:un,name:g('un'),role:g('ur'),godownId:g('ur')==='admin'?'':g('ug'),active:g('ua')==='1'};if(g('up'))r.passHash=ph(g('up'));put('users',r);log('USER',un+(g('up')?' (password set)':''),'');save();m.close();render();toast('✓ User saved')};
+}
+
+/* ---------- SETTINGS ---------- */
+/* ---------- GODOWN-WISE SERVER URLs (admin only; synced to every device; managers see but cannot change) ---------- */
+function urlCard(){
+ if(!isAdmin()){const g=G(ME.godownId)||{};const u=g.syncUrl||DB.meta.syncUrl||'';
+  return `<div class="card"><h3>🔗 Server URL for ${esc(g.name||'your godown')} <span class="tag mu">🔒 Set by Admin</span></h3><p class="mut" style="font-size:12.5px">Only the Admin can add, change or delete this URL. When the Admin changes it, this device switches automatically on the next sync.</p>
+  <div class="f"><label>Server URL</label><input value="${esc(u)}" readonly></div><p class="mut" style="font-size:12px">${g.syncUrl?`Updated on <b>${dmy(g.syncUrlDate)}</b> by <b>${esc(g.syncUrlBy||'admin')}</b>`:'Using the main company URL'}</p></div>`}
+ const rows=DB.godowns.filter(g=>g.active!==false).map(g=>`<tr><td><b>${esc(g.name)}</b></td><td style="white-space:normal;word-break:break-all;max-width:380px;font-family:monospace;font-size:11px">${g.syncUrl?esc(g.syncUrl):'<span class="mut">— uses main URL —</span>'}</td><td>${g.syncUrl?dmy(g.syncUrlDate):''}</td><td>${esc(g.syncUrl?(g.syncUrlBy||''):'')}</td><td><button class="btn sm" data-ue="${g.id}">✏ ${g.syncUrl?'Edit':'Add'}</button> ${g.syncUrl?`<button class="btn sm d" data-ud="${g.id}">🗑 Delete</button>`:''}</td></tr>`).join('');
+ return `<div class="card" style="grid-column:1/-1"><h3>🔗 Godown-wise Server URL <span class="mut" style="font-weight:400;font-size:12px">(Admin only)</span></h3>
+ <p class="mut" style="font-size:12.5px">Set a Server (Web App) URL for each godown. It is shown on every godown's device, but <b>only the Admin can add, change or delete it</b>. When you change a URL here, every device of that godown switches to it automatically on its next sync. A godown without its own URL uses the main URL.</p>
+ <div class="tw"><table><thead><tr><th>Godown</th><th>Server URL</th><th>Updated On</th><th>By</th><th></th></tr></thead><tbody>
+ <tr><td><b>Main URL (Admin + all godowns without their own)</b></td><td style="white-space:normal;word-break:break-all;max-width:380px;font-family:monospace;font-size:11px">${esc(DB.meta.syncUrl||'—')}</td><td>${dmy(DB.meta.syncUrlDate)}</td><td></td><td><button class="btn sm" data-ue="MAIN">✏ Edit</button></td></tr>
+ ${rows}</tbody></table></div>
+ <div class="btns" style="margin-top:10px"><button class="btn" id="uall">Apply main URL to ALL godowns</button></div></div>`}
+function bindUrlCard(){
+ $$('[data-ue]').forEach(b=>b.onclick=()=>editGodownUrl(b.dataset.ue));
+ $$('[data-ud]').forEach(b=>b.onclick=()=>{const g=G(b.dataset.ud);if(!confirm(`Delete the Server URL of ${g.name}?\n\nThat godown will then use the main URL.`))return;const r=askReason('Server URL of '+g.name);if(!r)return;
+  const old=g.syncUrl;delete g.syncUrl;delete g.syncUrlDate;delete g.syncUrlBy;touch('godowns',g);recDel('Server URL',{product:'Server URL: '+g.name,code:old,godownId:g.id,reason:r});toast('🗑 URL deleted for '+g.name);render()});
+ if($('#uall'))$('#uall').onclick=()=>{if(!DB.meta.syncUrl)return toast('Set the main URL first');if(!confirm('Set the main URL on ALL godowns? Every device switches on its next sync.'))return;
+  DB.godowns.forEach(g=>{g.syncUrl=DB.meta.syncUrl;g.syncUrlDate=today();g.syncUrlBy=ME.username;touch('godowns',g)});log('SERVER URL','Main URL applied to all godowns: '+DB.meta.syncUrl,'');save();toast('✓ URL applied to all godowns');render()};
+}
+function editGodownUrl(id){const main=id==='MAIN';const g=main?null:G(id);
+ const m=modal(`<h3 style="margin-top:0">🔗 Server URL — ${esc(main?'Main URL':g.name)}</h3>
+ <div class="f" style="margin-bottom:10px"><label>Web App URL (https://script.google.com/macros/s/…/exec)</label><input id="gu_u" value="${esc(main?DB.meta.syncUrl||'':g.syncUrl||'')}"></div>
+ <div class="f" style="max-width:200px;margin-bottom:10px"><label>Date</label><input type="date" id="gu_d" value="${today()}"></div>
+ <div class="btns" style="justify-content:flex-end"><button class="btn" id="gu_t">Test</button><button class="btn p" id="gu_s">💾 Save</button></div>`);
+ const val=()=>m.querySelector('#gu_u').value.trim();
+ const ok=u=>/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(u);
+ m.querySelector('#gu_t').onclick=async()=>{const u=val();if(!ok(u))return toast('URL should look like https://script.google.com/macros/s/…/exec',4000);try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'ping'})});const j=await r.json();toast(j.ok?'✓ Server connected':'Server: '+j.error,3500)}catch(e){toast('Could not connect: '+e.message,4000)}};
+ m.querySelector('#gu_s').onclick=()=>{const u=val(),d=m.querySelector('#gu_d').value||today();if(!ok(u))return toast('URL should look like https://script.google.com/macros/s/…/exec',4000);
+  if(main){const old=DB.meta.syncUrl;DB.meta.syncUrl=u;DB.meta.syncUrlDate=d;log('SERVER URL','Main URL '+(old&&old!==u?'changed':'set')+': '+u,'')}
+  else{g.syncUrl=u;g.syncUrlDate=d;g.syncUrlBy=ME.username;touch('godowns',g);log('SERVER URL',g.name+': '+u,g.id)}
+  save();m.close();toast('✓ URL saved — devices update on their next sync');render();syncNow(true)};
+}
+
+/* ---------- HELP & SUPPORT ---------- */
+const DEV={name:'Ritik Gupta',phone:'81140 19506',tel:'+918114019506'};
+V.help=el=>{title('Help & Support');
+ el.innerHTML=`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+ <div class="card" style="border-top:4px solid var(--acc2)"><h3>🛠️ Help Department</h3>
+  <div style="display:flex;gap:14px;align-items:center;margin:6px 0 14px"><div class="lgm" style="width:56px;height:56px;border:1px solid var(--line)"><img src="${LOGO_MARK}" style="width:44px;height:44px"></div>
+  <div><div class="mut" style="font-size:12px">Developer</div><div style="font-size:20px;font-weight:700;color:var(--nav)">${DEV.name}</div></div></div>
+  <div class="mut" style="font-size:12px">For any issue, contact</div><div style="font-size:22px;font-weight:700;margin:2px 0 12px">📞 ${DEV.phone}</div>
+  <div class="btns"><a class="btn p" href="tel:${DEV.tel}">📞 Call</a><a class="btn g" href="https://wa.me/${DEV.tel.replace('+','')}?text=${encodeURIComponent('Godown Stock Manager help — '+(ME?ME.username+' ('+(isAdmin()?'Admin':gN(ME.godownId))+')':''))}" target="_blank" rel="noopener">💬 WhatsApp</a></div></div>
+ <div class="card"><h3>📘 Quick Guide</h3><ol style="margin:0;padding-left:18px;line-height:1.8">
+  <li><b>Stock IN:</b> Dashboard → 📥 Scan Stock IN → choose supplier → scan each panel QR → Save.</li>
+  <li><b>Stock OUT:</b> Dashboard → 📤 Scan Stock OUT → choose customer → scan each panel → Save → Print challan.</li>
+  <li><b>Transfer:</b> 🔁 Scan Transfer → choose "To Godown" → scan → Save. The other godown opens <b>Pending Receipts</b> and receives it.</li>
+  <li><b>Check stock:</b> Dashboard → 🔢 Panels in Stock (serial-wise) → ⬇ Excel.</li>
+  <li><b>Physical count:</b> Physical Verification → scan every panel → shows missing serials.</li></ol></div>
+ <div class="card"><h3>❓ Common Problems</h3><table><tbody>
+  <tr><td style="white-space:normal"><b>"Sync failed"</b></td><td style="white-space:normal">Check internet. If it continues, call ${DEV.phone}.</td></tr>
+  <tr><td style="white-space:normal"><b>Serial "not in stock"</b></td><td style="white-space:normal">The panel is in another godown, already sold, or never entered — check Serial No. Register.</td></tr>
+  <tr><td style="white-space:normal"><b>Camera not opening</b></td><td style="white-space:normal">Open the tool in Chrome and allow camera permission.</td></tr>
+  <tr><td style="white-space:normal"><b>Wrong entry</b></td><td style="white-space:normal">Open the entry (Day Book) → ✏ Edit or 🗑 Delete. Godown users can change only their own godown; every change is logged.</td></tr>
+  <tr><td style="white-space:normal"><b>Forgot password</b></td><td style="white-space:normal">Admin resets it in Users &amp; Godowns.</td></tr></tbody></table></div></div>`;
+};
+
+V.settings=el=>{title('Settings');
+ el.innerHTML=`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+ <div class="card"><h3>🔑 Change My Password</h3><div class="f" style="margin-bottom:8px"><label>Current Password</label><input type="password" id="cp0"></div><div class="f" style="margin-bottom:8px"><label>New Password</label><input type="password" id="cp1"></div><div class="f" style="margin-bottom:10px"><label>Confirm</label><input type="password" id="cp2"></div><button class="btn p" id="cpsv">Update Password</button></div>
+ ${isAdmin()?`<div class="card"><h3>🏢 Company & Rules</h3><div class="f" style="margin-bottom:8px"><label>Company Name</label><input id="sc" value="${esc(DB.meta.company)}"></div>
+  <div class="f" style="margin-bottom:8px"><label>Company GSTIN (printed on challans)</label><input id="sgst" value="${esc(DB.meta.gstin||'')}"></div>
+  <div class="f" style="margin-bottom:8px"><label>Address (printed on vouchers)</label><input id="sadd" value="${esc(DB.meta.address||'')}"></div>
+  <div class="f" style="margin-bottom:8px"><label>Serial No. pattern (regex) — default: 2 letters + 10 or more digits</label><input id="srx" value="${esc(DB.meta.serialRegex)}" style="font-family:monospace"></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="sneg" ${DB.meta.allowNeg?'checked':''}> Allow negative stock (recommended: OFF — blocks taking out more than available)</label>
+  <button class="btn p" id="ssv">Save</button></div>`:''}
+ <div class="card"><h3>☁️ Cloud Sync (Google Sheet)</h3><p class="mut" style="font-size:12.5px">Every godown's data goes to one central Google Sheet and the Admin sees everything. Deploy <b>Code.gs</b> as a Google Apps Script web app and paste the Web App URL here — <b>the same URL on every device</b>.</p>
+  <div class="f" style="margin-bottom:8px"><label>Web App URL ${isAdmin()?'(main — used by Admin and by any godown without its own URL)':'<span class="tag mu">🔒 Set by Admin — cannot be changed</span>'}</label><input id="su" value="${esc(isAdmin()?DB.meta.syncUrl:syncURL())}" placeholder="https://script.google.com/macros/s/.../exec" ${isAdmin()?'':'readonly'}></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="sau" ${DB.meta.autoSync?'checked':''} ${isAdmin()?'':'disabled'}> Auto sync (on every save + every 2 minutes)</label>
+  <div class="btns">${isAdmin()?'<button class="btn p" id="susv">Save URL</button>':''}<button class="btn" id="snow">⟳ Sync Now</button><button class="btn" id="stest">Test</button></div>
+  <p class="mut" style="font-size:12px">Last sync: ${esc(DB.meta.lastSyncAt||'never')} • Pending changes: ${Object.keys(DB.dirty).length}</p></div>
+ ${urlCard()}
+ ${isAdmin()?`<div class="card"><h3>🧹 Data</h3><div class="btns"><button class="btn" onclick="demoData()">▶ Load Demo Data</button><button class="btn d" id="sclr">Clear ALL data (reset)</button></div></div>`:''}</div>`;
+ $('#cpsv').onclick=()=>{if(ph($('#cp0').value)!==ME.passHash)return toast('Current password is wrong');if($('#cp1').value.length<4)return toast('Use at least 4 characters');if($('#cp1').value!==$('#cp2').value)return toast('Passwords do not match');
+  const u=DB.users.find(x=>x.id===ME.id);u.passHash=ph($('#cp1').value);touch('users',u);ME=u;sessionStorage.setItem('gsm_me',JSON.stringify(u));log('PASSWORD','Changed own password');save();toast('✓ Password updated');render()};
+ if($('#ssv'))$('#ssv').onclick=()=>{try{new RegExp($('#srx').value)}catch(e){return toast('Invalid serial pattern')}const gs=$('#sgst').value.trim().toUpperCase();if(gs&&!/^\d{2}[A-Z0-9]{13}$/.test(gs))return toast('GSTIN should be 15 characters');DB.meta.company=$('#sc').value.trim()||'My Company';DB.meta.gstin=gs;DB.meta.address=$('#sadd').value.trim();DB.meta.serialRegex=$('#srx').value.trim()||'[A-Z]{2}\\d{10,}';DB.meta.allowNeg=$('#sneg').checked;save(false);buildNav();toast('✓ Saved')};
+ if($('#susv'))$('#susv').onclick=()=>{DB.meta.syncUrl=$('#su').value.trim();DB.meta.autoSync=$('#sau').checked;if(DB.meta.syncUrl&&isAdmin()){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)r.updatedAt=Date.now();DB.dirty[c+'|'+r.id]=r.updatedAt}))}save(false);toast('✓ URL saved');syncNow()};
+ $('#snow').onclick=()=>syncNow();$('#stest').onclick=async()=>{try{const j=await api({action:'ping'});toast(j.ok?'✓ Server connected':'Server: '+j.error,3500)}catch(e){toast('Could not connect: '+e.message,4000)}};
+ bindUrlCard();
+ if($('#sclr'))$('#sclr').onclick=()=>{if(prompt('ALL data will be deleted. Type DELETE to confirm')!=='DELETE')return;localStorage.removeItem(LS);location.reload()};
+};
+
+/* ---------- DEMO DATA (based on a real Phintex sale of 36 Waaree panels) ---------- */
+function demoData(){toast('Demo data is not included in the online app')}
+
+/* ---------- PRE-LOADED STOCK (added once; deleting it later will not bring it back) ---------- */
+const PRELOAD={format:"gsm-entries-v1",items:[],parties:[],vouchers:[]};
+function runPreload(){return;if(DB.meta.preload_5601018635)return;try{applyEntryData(PRELOAD,'Pre-loaded: Waaree Inv 5601018635')}catch(e){console.error(e)}DB.meta.preload_5601018635=true;save(false)}
+
+
+/* ---------- INSTALLABLE APP (PWA): works offline after first open; updates itself when online ---------- */
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){navigator.serviceWorker.register('sw.js').then(r=>{r.update();r.onupdatefound=()=>{const w=r.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('✓ New version installed — it will be used next time you open the app',5000)})}}).catch(()=>{})}
+let _inst=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();_inst=e;const b=$('#instBtn');if(b)b.style.display=''});
+/* ---------- BOOT ---------- */
+load();if(!DB.meta.syncUrl){DB.meta.syncUrl=DEFAULT_SYNC;DB.meta.autoSync=true;save(false)}if(DB.meta.company==='My Company'){DB.meta.company='Phintex India Services Private Limited';DB.meta.gstin=DB.meta.gstin||'09AANCP2426R1ZN';DB.meta.address=DB.meta.address||'Building No: R-16, Vrindavan Dham, NH-24, Sitapur - 261001 (U.P.)';save(false)}$('#llogo').src=LOGO_FULL;$('#fav').href=LOGO_MARK;$('#lcomp').textContent=DB.meta.company+' — Multi-warehouse stock control';
+$('#lbtn').onclick=doLogin;$('#lp').onkeydown=e=>{if(e.key==='Enter')doLogin()};$('#lu').onkeydown=e=>{if(e.key==='Enter')$('#lp').focus()};
+$('#lset').onclick=e=>{e.preventDefault();const u=prompt('Cloud Sync Web App URL (get it from the Admin):',DB.meta.syncUrl||'');if(u!==null){DB.meta.syncUrl=u.trim();save(false);toast(u?'URL saved — now log in':'URL removed')}};
+$('#logout').onclick=logout;$('#ham').onclick=()=>$('#side').classList.toggle('open');$('#syncSt').onclick=()=>DB.meta.syncUrl?syncNow():toast('Add the Cloud Sync URL in Settings');
+try{const s=JSON.parse(sessionStorage.getItem('gsm_me'));if(s){const u=DB.users.find(x=>x.id===s.id&&x.passHash===s.passHash);if(u)startApp(u)}}catch(e){}
+window.addEventListener('beforeunload',e=>{if(CUR&&CUR.dirty){e.preventDefault();e.returnValue=''}});
+</script>
+</body>
+</html>
