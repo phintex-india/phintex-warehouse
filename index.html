@@ -200,6 +200,11 @@ const dmy=s=>s?s.slice(8,10)+'-'+s.slice(5,7)+'-'+s.slice(0,4):'';
 const num=v=>{if(v===null||v===undefined||v==='')return 0;if(typeof v==='number')return v;let s=String(v).trim();let neg=/^\(-\)|^-|^\(.*\)$/.test(s);let n=parseFloat(s.replace(/\(-\)/,'').replace(/[^0-9.]/g,''));if(isNaN(n))return 0;return neg?-n:n};
 const r2=n=>Math.round((+n||0)*100)/100;
 const fq=n=>(+n||0).toLocaleString('en-IN',{maximumFractionDigits:3});
+const UNITS=['Pcs','Nos','Box','Bundle','Set','Pair','Roll','Mtr','Kg','Ltr','Pkt','Coil','Drum'];
+const uB=it=>(it&&it.unit)||'Pcs';
+const uAlt=it=>it&&it.altUnit&&+it.altFactor>1?{u:it.altUnit,f:+it.altFactor}:null;
+const fu=(it,n)=>{n=+n||0;const b=uB(it),a=uAlt(it);if(!a||!n)return fq(n)+' '+b;const sg=n<0?'-':'';n=Math.abs(n);const w=Math.floor(n/a.f+1e-9),r=+(n-w*a.f).toFixed(3);return sg+(w?fq(w)+' '+a.u:'')+(w&&r?' + ':'')+(r?fq(r)+' '+b:'')};
+const uLbl=it=>{const a=uAlt(it);return a?`${uB(it)} (1 ${a.u} = ${fq(a.f)} ${uB(it)})`:uB(it)};
 const fm=n=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fyStart=()=>{const d=new Date();const y=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;return y+'-04-01'};
 function toast(m,ms){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',ms||2600)}
@@ -253,10 +258,9 @@ const OUTT=['SAL','PRT','DMG','TRF'], INT=['OPN','PUR','SRT'], GSTT=['PUR','SAL'
 /* ---------- DB ---------- */
 function seed(){
  const G=[['G1','Branch Office: Ashiana-Lucknow','ASH'],['G2','Branch Office: Lakhimpur','LKP'],['G3','Head Office Sitapur WIP','STP'],['G4','Warehouse: Khairabad, Sitapur','KHB'],['G5','Warehouse: Nadarganj, Lucknow','NDG'],['G6','Warehouse: R-16 Vrindavan Stock','VRD']];
- const U=[['U0','admin','admin@123','Administrator','admin',''],['U1','ashiana','ash@123','Ashiana Manager','manager','G1'],['U2','lakhimpur','lkp@123','Lakhimpur Manager','manager','G2'],['U3','sitapur','stp@123','Sitapur HO Manager','manager','G3'],['U4','khairabad','khb@123','Khairabad Manager','manager','G4'],['U5','nadarganj','ndg@123','Nadarganj Manager','manager','G5'],['U6','vrindavan','vrd@123','Vrindavan Manager','manager','G6']];
- return {ver:2,meta:{company:'My Company',gstin:'',address:'',syncUrl:'',autoSync:true,allowNeg:false,serialRegex:'[A-Z]{2}\\d{10,}',lastSync:{}},dirty:{},
+  return {ver:2,meta:{company:'My Company',gstin:'',address:'',syncUrl:'',autoSync:true,allowNeg:false,serialRegex:'[A-Z]{2}\\d{10,}',lastSync:{}},dirty:{},
   godowns:G.map(g=>({id:g[0],name:g[1],code:g[2],active:true,updatedAt:0})),
-  users:U.map(u=>({id:u[0],username:u[1],passHash:ph(u[2]),name:u[3],role:u[4],godownId:u[5],active:true,updatedAt:0})),
+  users:[],
   items:[],parties:[],vouchers:[],audit:[],deletions:[]};
 }
 function load(){try{DB=JSON.parse(localStorage.getItem(LS))}catch(e){DB=null}if(!DB||!DB.godowns){DB=seed();save(false)}DB.deletions=DB.deletions||[];DB.dirty=DB.dirty||{};DB.meta.lastSync=DB.meta.lastSync||{};if(!DB.meta.serialRegex)DB.meta.serialRegex='[A-Z]{2}\\d{10,}'}
@@ -266,8 +270,11 @@ function put(coll,rec){const i=DB[coll].findIndex(r=>r.id===rec.id);if(i<0)DB[co
 function log(action,detail,g){const a={id:uid('A'),t:new Date().toISOString(),user:ME?ME.username:'-',action,detail,godownId:g||(ME&&ME.godownId)||''};DB.audit.push(a);touch('audit',a)}
 const G=id=>DB.godowns.find(g=>g.id===id), gN=id=>(G(id)||{}).name||'', I=id=>DB.items.find(x=>x.id===id), Pt=id=>DB.parties.find(x=>x.id===id), pN=id=>(Pt(id)||{}).name||'';
 const isAdmin=()=>ME&&ME.role==='admin';
-const myG=()=>isAdmin()?DB.godowns.filter(g=>g.active!==false).map(g=>g.id):[ME.godownId];
-const visV=()=>DB.vouchers.filter(v=>!v.deleted&&(isAdmin()||v.godownId===ME.godownId||v.toGodownId===ME.godownId));
+const isViewer=()=>ME&&ME.role==='viewer';
+const allG=()=>isAdmin()||(isViewer()&&!ME.godownId);
+const VIEWER_VIEWS=['dashboard','r_daily','r_summary','r_ledger','help'];
+const myG=()=>allG()?DB.godowns.filter(g=>g.active!==false).map(g=>g.id):[ME.godownId];
+const visV=()=>DB.vouchers.filter(v=>!v.deleted&&(allG()||v.godownId===ME.godownId||v.toGodownId===ME.godownId));
 const STATES={'01':'Jammu & Kashmir','02':'Himachal Pradesh','03':'Punjab','04':'Chandigarh','05':'Uttarakhand','06':'Haryana','07':'Delhi','08':'Rajasthan','09':'Uttar Pradesh','10':'Bihar','11':'Sikkim','12':'Arunachal Pradesh','13':'Nagaland','14':'Manipur','15':'Mizoram','16':'Tripura','17':'Meghalaya','18':'Assam','19':'West Bengal','20':'Jharkhand','21':'Odisha','22':'Chhattisgarh','23':'Madhya Pradesh','24':'Gujarat','26':'Dadra & Nagar Haveli and Daman & Diu','27':'Maharashtra','29':'Karnataka','30':'Goa','32':'Kerala','33':'Tamil Nadu','34':'Puducherry','36':'Telangana','37':'Andhra Pradesh','38':'Ladakh'};
 const compState=()=>(DB.meta.gstin||'09').slice(0,2);
 const partyState=p=>p&&p.gstin&&p.gstin.length>=2?p.gstin.slice(0,2):compState();
@@ -345,7 +352,7 @@ async function syncNow(silent){
   const changes=Object.keys(DB.dirty).map(k=>{const[c,id]=k.split('|');const rec=(DB[c]||[]).find(r=>r.id===id);return rec?{coll:c,rec}:null}).filter(Boolean);
   const since=DB.meta.lastSync[ME.username]||0;
   const j=await api({action:'sync',user:ME.username,pass:ME.passHash,since,changes});
-  if(!j.ok){if(/login/i.test(j.error||'')){syncing=false;alert('Server login failed — your password was changed or the user is disabled. Please log in again.');return logout()}throw new Error(j.error||'Server error')}
+  if(!j.ok){if(/login/i.test(j.error||'')){syncing=false;alert(/locked|blocked/i.test(j.error)?j.error.replace(/^Login failed — /,''):'Server login failed — your password was changed or the user is disabled. Please log in again.');return logout()}throw new Error(j.error||'Server error')}
   changes.forEach(c=>{const k=c.coll+'|'+c.rec.id;if(DB.dirty[k]===c.rec.updatedAt)delete DB.dirty[k]});
   let n=0;(j.records||[]).forEach(({coll,rec})=>{if(!DB[coll])return;const k=coll+'|'+rec.id;if(DB.dirty[k])return;const i=DB[coll].findIndex(r=>r.id===rec.id);
    if(i<0){DB[coll].push(rec);n++}else if((rec.updatedAt||0)>=(DB[coll][i].updatedAt||0)){DB[coll][i]=rec;n++}});
@@ -365,23 +372,26 @@ async function doLogin(){
  const u=$('#lu').value.trim().toLowerCase(),p=$('#lp').value;$('#lerr').textContent='';
  if(!u||!p){$('#lerr').textContent='Enter username and password';return}
  const h=ph(p);let usr=DB.users.find(x=>x.username===u&&x.active!==false);
+ const LOCKMSG='🔒 This user is locked after 5 wrong passwords. Ask the Admin to set a new password.';
+ if(usr&&usr.locked&&usr.role!=='admin'){$('#lerr').textContent=LOCKMSG;return}
  if(usr&&usr.passHash===h)return startApp(usr);
  if(DB.meta.syncUrl){
   $('#lerr').textContent='Checking with server…';
   try{const j=await api({action:'login',user:u,pass:h});
    if(j.ok&&j.user){const i=DB.users.findIndex(x=>x.id===j.user.id);if(i<0)DB.users.push(j.user);else DB.users[i]=j.user;save(false);$('#lerr').textContent='';return startApp(j.user)}
+   if(j.error&&j.error!=='Login failed'){$('#lerr').textContent=/locked/i.test(j.error)&&!/minutes/i.test(j.error)?LOCKMSG:j.error;return}
   }catch(e){}
  }
  $('#lerr').textContent='Wrong username or password';
 }
 function startApp(u){
  ME=u;if(u.role==='admin')runPreload();
- if(u.role==='admin'&&DB.meta.syncUrl&&!DB.meta.firstPush){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)r.updatedAt=Date.now();DB.dirty[c+'|'+r.id]=r.updatedAt}));DB.meta.firstPush=true;save(false)}
+ if(u.role==='admin'&&DB.meta.syncUrl&&!DB.meta.firstPush){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)return;DB.dirty[c+'|'+r.id]=r.updatedAt}));DB.meta.firstPush=true;save(false)}
  ME=u;sessionStorage.setItem('gsm_me',JSON.stringify(u));
  $('#login').style.display='none';$('#app').style.display='block';
  $('#av').textContent=(u.name||u.username)[0].toUpperCase();$('#wn').textContent=u.name||u.username;
- $('#wg').textContent=isAdmin()?'Admin — All Godowns':gN(u.godownId);
- if(!isAdmin()&&!G(u.godownId))toast('No godown is assigned to this user — contact the admin',5000);
+ $('#wg').textContent=isAdmin()?'Admin — All Godowns':isViewer()?'Viewer — '+(u.godownId?gN(u.godownId):'All Godowns'):gN(u.godownId);
+ if(!allG()&&!G(u.godownId))toast('No godown is assigned to this user — contact the admin',5000);
  buildNav();go('dashboard');
  if(DB.meta.syncUrl){setSync('Cloud on');syncNow(true)}else setSync('Offline mode');
  if(isAdmin()&&ph('admin@123')===u.passHash)toast('⚠ Please change the default admin password (Settings → Change Password)',5000);
@@ -391,17 +401,18 @@ function logout(){ME=null;sessionStorage.removeItem('gsm_me');location.reload()}
 /* ---------- NAV ---------- */
 const NAV=[
  ['Main',[['dashboard','📊','Dashboard'],['entry','➕','Stock Entry'],['vouchers','📒','Day Book / Vouchers'],['receive','📥','Pending Receipts'],['physical','🔍','Physical Verification']]],
- ['Reports',[['r_summary','📦','Stock Summary'],['r_serial','🔢','Serial No. Register'],['r_ledger','📑','Product Stock Ledger'],['r_inward','⬇️','Inward (Purchase)'],['r_outward','⬆️','Outward (Sale)'],['r_srt','↩️','Sale Return'],['r_prt','↪️','Purchase Return'],['r_trf','🔁','Stock Transfer'],['r_dmg','⚠️','Damage / Shortage'],['r_party','👥','Party-wise Report'],['r_phy','🧮','Physical vs Book']]],
+ ['Reports',[['r_summary','📦','Stock Summary'],['r_daily','🗓️','Daily IN / OUT'],['r_serial','🔢','Serial No. Register'],['r_ledger','📑','Product Stock Ledger'],['r_inward','⬇️','Inward (Purchase)'],['r_outward','⬆️','Outward (Sale)'],['r_srt','↩️','Sale Return'],['r_prt','↪️','Purchase Return'],['r_trf','🔁','Stock Transfer'],['r_dmg','⚠️','Damage / Shortage'],['r_party','👥','Party-wise Report'],['r_phy','🧮','Physical vs Book']]],
  ['Control',[['tally','⚖️','Tally Stock Match','a'],['audit','🛡️','Audit Log','a'],['delmgr','✏️','Edit / Delete Manager']]],
  ['Help',[['help','🛠️','Help & Support']]],
  ['Masters',[['items','🏷️','Item Master'],['parties','🏢','Party Master'],['labels','▦','Barcode Labels'],['import','📂','Import / Export','a'],['users','🔐','Users & Godowns','a'],['settings','⚙️','Settings']]]
 ];
 function buildNav(){
  $('#side').innerHTML=`<div class="brand"><div class="lgm"><img src="${LOGO_MARK}" alt=""></div><div><b>${esc(DB.meta.company)}</b><small>Godown Stock Manager</small></div></div>`+
- NAV.map(([g,list])=>{const l=list.filter(x=>x[3]!=='a'||isAdmin());if(!l.length)return'';return`<div class="navg"><div>${g}</div>${l.map(x=>`<div class="nv" data-v="${x[0]}"><i>${x[1]}</i>${x[2]}</div>`).join('')}</div>`}).join('');
+ NAV.map(([g,list])=>{const l=list.filter(x=>(x[3]!=='a'||isAdmin())&&(!isViewer()||VIEWER_VIEWS.includes(x[0])));if(!l.length)return'';return`<div class="navg"><div>${g}</div>${l.map(x=>`<div class="nv" data-v="${x[0]}"><i>${x[1]}</i>${x[2]}</div>`).join('')}</div>`}).join('');
  $$('#side .nv').forEach(n=>n.onclick=()=>go(n.dataset.v));
 }
 function go(v,params){
+ if(isViewer()&&!VIEWER_VIEWS.includes(v))v='dashboard';
  if(CUR&&CUR.dirty&&!(v==='entry'&&!params)&&!confirm('This entry is not saved. Discard it?'))return;
  VIEW=v;P=params||{};if(!(v==='entry'&&!params))CUR=null;render();$('#side').classList.remove('open');window.scrollTo(0,0);
 }
@@ -495,10 +506,10 @@ function parseCSV(t){const sep=t.split('\n')[0].includes('\t')?'\t':',';const ro
  if(cur||row.length){row.push(cur);rows.push(row)}return rows.filter(r=>r.some(x=>String(x).trim()))}
 
 /* ---------- FILTER BAR ---------- */
-function gOpts(all,sel){const gs=isAdmin()?DB.godowns.filter(g=>g.active!==false):DB.godowns.filter(g=>g.id===ME.godownId);return(all&&isAdmin()?`<option value="ALL">— All Godowns —</option>`:'')+gs.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.name)}</option>`).join('')}
+function gOpts(all,sel){const gs=allG()?DB.godowns.filter(g=>g.active!==false):DB.godowns.filter(g=>g.id===ME.godownId);return(all&&allG()?`<option value="ALL">— All Godowns —</option>`:'')+gs.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.name)}</option>`).join('')}
 function filterBar(o){
  return`<div class="card"><div class="row">
- ${o.g!==false?`<div class="f"><label>Godown</label><select id="fg" ${isAdmin()?'':'disabled'}>${gOpts(o.gAll!==false,P.fg||(isAdmin()?'ALL':ME.godownId))}</select></div>`:''}
+ ${o.g!==false?`<div class="f"><label>Godown</label><select id="fg" ${allG()?'':'disabled'}>${gOpts(o.gAll!==false,P.fg||(allG()?'ALL':ME.godownId))}</select></div>`:''}
  ${o.d!==false?`<div class="f" style="max-width:160px"><label>From</label><input type="date" id="ff" value="${P.ff||fyStart()}"></div><div class="f" style="max-width:160px"><label>To</label><input type="date" id="ft" value="${P.ft||today()}"></div>`:''}
  ${o.item?`<div class="f"><label>Item ${o.item===2?'<span class="rq">*</span>':''}</label><input id="fi" placeholder="Name / alias / barcode" value="${esc(P.fiN||'')}"></div>`:''}
  ${o.party?`<div class="f"><label>Party ${o.party===2?'<span class="rq">*</span>':''}</label><input id="fp" placeholder="Party name / alias" value="${esc(P.fpN||'')}"></div>`:''}
@@ -517,7 +528,7 @@ function bindFilter(run){
  $('#fpr').onclick=printReport;rd();run();
 }
 const fGs=()=>(!P.fg||P.fg==='ALL')?myG():[P.fg];
-const gLabel=()=>(!P.fg||P.fg==='ALL')?(isAdmin()?'All Godowns':gN(ME.godownId)):gN(P.fg);
+const gLabel=()=>(!P.fg||P.fg==='ALL')?(allG()?'All Godowns':gN(ME.godownId)):gN(P.fg);
 
 /* =====================================================================
    VIEWS
@@ -532,27 +543,28 @@ V.dashboard=el=>{
  const tv=visV().filter(v=>v.date===t);const lq=v=>v.lines.reduce((b,l)=>b+num(l.qty),0);
  const tin=tv.filter(v=>['PUR','SRT'].includes(v.type)).reduce((a,v)=>a+lq(v),0);
  const tout=tv.filter(v=>['SAL','PRT','DMG'].includes(v.type)).reduce((a,v)=>a+lq(v),0);
+ const tsr=tv.filter(v=>v.type==='SRT').reduce((a,v)=>a+lq(v),0);const ttrf=tv.filter(v=>v.type==='TRF'&&gs.includes(v.godownId)).reduce((a,v)=>a+lq(v),0);
  const pend=DB.vouchers.filter(v=>!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&gs.includes(v.toGodownId));
  const neg=sAll.filter(r=>r.cl<0);
  const SI=Object.values(serialIndex());const sIn=SI.filter(r=>r.status==='In Stock'&&gs.includes(r.g)).length;
  const draft=loadDraft();
  el.innerHTML=`
- ${!DB.items.length?`<div class="hint"><b>Getting started:</b> just press <b>Scan Stock IN</b> and scan your panels — new products are created on the first scan. Or add products in <a href="#" onclick="go('items');return false">Item Master</a> / <a href="#" onclick="go('import');return false">import from Excel</a>. ${isAdmin()?`&nbsp; <a href="#" onclick="demoData();return false">▶ Load demo data to explore</a>`:''}</div>`:''}
- ${draft?`<div class="warnbox">📝 You have an unsaved <b>${T[draft.v.type].n}</b> draft (${fq(vTotals(draft.v).qty)} qty scanned). <a href="#" onclick="go('entry',{type:'${draft.v.type}'});return false">Continue scanning →</a></div>`:''}
- ${pend.length?`<div class="warnbox">📥 <b>${pend.length} stock transfer(s)</b> are waiting to be received at your godown. <a href="#" onclick="go('receive');return false">Receive now →</a></div>`:''}
+ ${!DB.items.length&&!isViewer()?`<div class="hint"><b>Getting started:</b> just press <b>Scan Stock IN</b> and scan your panels — new products are created on the first scan. Or add products in <a href="#" onclick="go('items');return false">Item Master</a> / <a href="#" onclick="go('import');return false">import from Excel</a>. ${isAdmin()?`&nbsp; <a href="#" onclick="demoData();return false">▶ Load demo data to explore</a>`:''}</div>`:''}
+ ${draft&&!isViewer()?`<div class="warnbox">📝 You have an unsaved <b>${T[draft.v.type].n}</b> draft (${fq(vTotals(draft.v).qty)} qty scanned). <a href="#" onclick="go('entry',{type:'${draft.v.type}'});return false">Continue scanning →</a></div>`:''}
+ ${pend.length&&!isViewer()?`<div class="warnbox">📥 <b>${pend.length} stock transfer(s)</b> are waiting to be received at your godown. <a href="#" onclick="go('receive');return false">Receive now →</a></div>`:''}
  ${neg.length?`<div class="warnbox" style="background:#fdecec;border-color:#f3c0c0;color:#8a1c1c">⛔ <b>${neg.length} product(s)</b> have NEGATIVE stock — wrong entry or missing inward. <a href="#" onclick="go('r_summary');return false">Check now →</a></div>`:''}
- <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:16px">
+ ${isViewer()?`<div class="btns" style="margin-bottom:14px"><button class="btn p" onclick="go('r_daily')">🗓️ Today IN / OUT — Excel</button><button class="btn" onclick="go('r_summary')">📦 Godown-wise Stock</button><span class="tag mu" style="align-self:center">👁 View-only access</span></div>`:`<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:16px">
   <button class="tb" style="--c:#15803d;padding:18px 20px" onclick="go('entry',{type:'PUR'})"><b style="font-size:18px">📥 Scan Stock IN</b><small>Purchase / goods received — scan each panel QR or barcode</small></button>
   <button class="tb" style="--c:#c62828;padding:18px 20px" onclick="go('entry',{type:'SAL'})"><b style="font-size:18px">📤 Scan Stock OUT</b><small>Sale / dispatch — scan each panel going out</small></button>
   <button class="tb" style="--c:#163351;padding:18px 20px" onclick="go('r_summary',{fvw:'s'})"><b style="font-size:18px">🔢 Panels in Stock</b><small>Every panel serial / barcode-wise, godown-wise — Excel too</small></button>
   <button class="tb" style="--c:#7c3aed;padding:18px 20px" onclick="go('entry',{type:'TRF'})"><b style="font-size:18px">🔁 Scan Transfer</b><small>Send stock to another godown</small></button>
- </div>
+ </div>`}
  <div class="grid kpis" style="margin-bottom:16px">
   <div class="kpi" style="--c:#0e95a2"><small>Available Stock (Qty)</small><b>${fq(avail)}</b><span>${DB.items.length} products • ${gs.length} godown(s)</span></div>
-  <div class="kpi" style="--c:#163351"><small>Serial Nos. In Stock</small><b>${fq(sIn)}</b><span>Unique panels / units</span></div>
+  ${isViewer()?'':`<div class="kpi" style="--c:#163351"><small>Serial Nos. In Stock</small><b>${fq(sIn)}</b><span>Unique panels / units</span></div>`}
   <div class="kpi" style="--c:#15803d"><small>Today IN</small><b>${fq(tin)}</b><span>Purchase + Sale Return</span></div>
   <div class="kpi" style="--c:#c62828"><small>Today OUT</small><b>${fq(tout)}</b><span>Sale + P. Return + Damage</span></div>
-  <div class="kpi" style="--c:#7c3aed"><small>Pending Receipts</small><b>${pend.length}</b><span>Transfers in transit</span></div>
+  ${isViewer()?`<div class="kpi" style="--c:#0891b2"><small>Today Sale Return</small><b>${fq(tsr)}</b><span>Goods returned by customers</span></div><div class="kpi" style="--c:#7c3aed"><small>Today Stock Transfer</small><b>${fq(ttrf)}</b><span>Sent to other godowns</span></div>`:`<div class="kpi" style="--c:#7c3aed"><small>Pending Receipts</small><b>${pend.length}</b><span>Transfers in transit</span></div>`}
  </div>
  <div class="split">
   <div>
@@ -564,12 +576,12 @@ V.dashboard=el=>{
   </div>
   <div>
    <div class="card"><h3>🔎 Quick Check (product or serial)</h3><div class="row"><div class="f"><input id="qs" placeholder="Product / brand / barcode / serial no."></div><button class="btn" id="qsc">📷</button></div><div id="qso" style="margin-top:10px"></div></div>
-   <div class="card"><h3>⚡ Other Entries</h3><div class="btns" style="flex-direction:column">
-    ${['SRT','PRT','DMG'].concat(isAdmin()?['OPN']:[]).map(t=>`<button class="btn" style="justify-content:flex-start;border-left:4px solid ${T[t].c}" onclick="go('entry',{type:'${t}'})">${T[t].n}</button>`).join('')}<button class="btn" style="justify-content:flex-start;border-left:4px solid #475569" onclick="go('physical')">Physical Verification</button></div></div>
+   ${isViewer()?'':`<div class="card"><h3>⚡ Other Entries</h3><div class="btns" style="flex-direction:column">
+    ${['SRT','PRT','DMG'].concat(isAdmin()?['OPN']:[]).map(t=>`<button class="btn" style="justify-content:flex-start;border-left:4px solid ${T[t].c}" onclick="go('entry',{type:'${t}'})">${T[t].n}</button>`).join('')}<button class="btn" style="justify-content:flex-start;border-left:4px solid #475569" onclick="go('physical')">Physical Verification</button></div></div>`}
   </div>
  </div>`;
  const qs=it=>{$('#qso').innerHTML=`<b>${esc(it.name)}</b> <span class="mut">${esc(bcat(it))} ${esc(it.code||'')}</span>`+table([{k:'g',l:'Godown'},{k:'q',l:'Available',n:1}],gs.map(g=>({g:gN(g),q:stockOf(it.id,g)})).concat([{g:'TOTAL',q:gs.reduce((a,g)=>a+stockOf(it.id,g),0)}]))};
- const qsAny=c=>{const it=findItemByCode(c);if(it)return qs(it);const s=extractSerials(c)[0];if(s){const r=serialIndex()[s];if(r&&(isAdmin()||r.hist.some(v=>v.godownId===ME.godownId||v.toGodownId===ME.godownId)))return serialCard(s);return toast('Serial not found: '+s)}toast('Not found: '+c)};
+ const qsAny=c=>{const it=findItemByCode(c);if(it)return qs(it);const s=extractSerials(c)[0];if(s){const r=serialIndex()[s];if(r&&(allG()||r.hist.some(v=>v.godownId===ME.godownId||v.toGodownId===ME.godownId)))return serialCard(s);return toast('Serial not found: '+s)}toast('Not found: '+c)};
  picker($('#qs'),itemSrc(),o=>qs(I(o.id)));
  $('#qs').addEventListener('keydown',e=>{if(e.key==='Enter'&&extractSerials(e.target.value).length)qsAny(e.target.value)});
  $('#qsc').onclick=()=>scanner(qsAny);
@@ -633,13 +645,16 @@ V.entry=el=>{
  $('#e_narr').oninput=e=>{v.narration=e.target.value;mark()};
  const lineHTML=(l,i)=>{const it=I(l.itemId)||{};const avl=isOut&&l.itemId?stockOf(l.itemId,v.godownId,v.id):'';const sc=(l.serials||[]).length;
   return`<tr data-i="${i}"><td class="mut">${i+1}</td><td><input class="li" value="${esc(it.name||'')}" placeholder="Search product / brand / barcode…"><div class="sub">${esc(bcat(it))}${bcat(it)?' • ':''}${it.serial?`<button class="sbtn ${(isOut&&(sc!==num(l.qty)||!sc))||(!isOut&&sc<num(l.qty))?'bad':''} sx">🔢 ${isOut?sc+' serial'+(sc===1?'':'s'):sc+' of '+fq(l.qty)+' serials'} ${l._open?'▴':'▾'}</button>${!isOut&&sc<num(l.qty)?' <span class="mut">('+fq(num(l.qty)-sc)+' serials can be scanned later)</span>':''}`:(l.itemId?`Batch: <input class="lbt" value="${esc(l.batch||'')}" style="width:120px;padding:2px 5px;font-size:11px">`:'')}</div></td>
-  <td><input class="lq" type="number" step="any" min="0" value="${esc(l.qty)}" style="width:90px;text-align:right;font-weight:700" ${it.serial&&isOut?'readonly title="Qty = number of serials scanned"':''}></td>${isOut?`<td class="n ${avl!==''&&avl<num(l.qty)?'neg':'mut'}">${avl===''?'':fq(avl)}</td>`:''}<td><button class="btn sm d lx">✕</button></td></tr>
+  <td style="white-space:nowrap">${(()=>{const a=!it.serial&&uAlt(it);const alt=a&&l.u==='alt';const shown=alt?+(num(l.qty)/a.f).toFixed(3):l.qty;
+   return `<input class="lq" type="number" step="any" min="0" value="${esc(shown)}" style="width:90px;text-align:right;font-weight:700" ${it.serial&&isOut?'readonly title="Qty = number of serials scanned"':''}>`+
+   (a?` <select class="lu" style="width:auto;padding:4px 6px;font-size:12px"><option value="">${esc(uB(it))}</option><option value="alt" ${alt?'selected':''}>${esc(a.u)}</option></select>${alt?`<div class="mut" style="font-size:11px;text-align:right">= ${fq(num(l.qty))} ${esc(uB(it))}</div>`:''}`:(l.itemId?` <span class="mut" style="font-size:12px">${esc(uB(it))}</span>`:''))})()}</td>${isOut?`<td class="n ${avl!==''&&avl<num(l.qty)?'neg':'mut'}">${avl===''?'':fq(avl)}</td>`:''}<td><button class="btn sm d lx">✕</button></td></tr>
   ${it.serial&&l._open?`<tr class="srow"><td></td><td colspan="${nc-1}"><div class="chips">${(l.serials||[]).map((o,j)=>`<span class="chip">${esc(o.s)}${o.p?' <span class="mut">['+esc(o.p)+']</span>':''}<b data-j="${j}" title="Remove">×</b></span>`).join('')||'<span class="mut">No serials yet — scan above</span>'}</div></td></tr>`:''}`};
  const tot=()=>{const T2=vTotals(v);$('#totbox').innerHTML=`<div><span>Products</span><b>${v.lines.filter(l=>l.itemId).length}</b></div><div><span>Serial nos. scanned</span><b>${fq(T2.serials)}</b></div><div class="gt"><span>Total Qty</span><span>${fq(T2.qty)}</span></div>`;const c=$('#scnt');if(c)c.textContent=fq(T2.qty)};
  const drawL=()=>{$$('.pk').forEach(e=>e.remove());if(!v.lines.length||v.lines[v.lines.length-1].itemId)v.lines.push(blankLine());$('#lb').innerHTML=v.lines.map(lineHTML).join('');
   $$('#lb tr[data-i]').forEach(tr=>{const i=+tr.dataset.i,l=v.lines[i];const q=s=>tr.querySelector(s);
    picker(q('.li'),itemSrc(v.godownId),o=>{const it=I(o.id);if(l.itemId!==o.id){l.itemId=o.id;l.serials=[];l.qty=it.serial&&isOut?0:(num(l.qty)||1)}mark();drawL();if(!it.serial){const r=$$('#lb tr[data-i]')[i];if(r)r.querySelector('.lq').select()}else{l._open=true;drawL();$('#scanbox').focus()}});
-   q('.lq').oninput=e=>{l.qty=e.target.value;tot();mark()};
+   q('.lq').oninput=e=>{const it=I(l.itemId)||{},a=!it.serial&&uAlt(it);l.qty=a&&l.u==='alt'?+(num(e.target.value)*a.f).toFixed(3):e.target.value;const h=tr.querySelector('.lq').parentNode.querySelector('div.mut');if(h)h.textContent='= '+fq(num(l.qty))+' '+uB(it);tot();mark()};
+   if(q('.lu'))q('.lu').onchange=e=>{l.u=e.target.value;mark();drawL()};
    if(q('.lbt'))q('.lbt').oninput=e=>{l.batch=e.target.value;mark()};
    if(q('.sx'))q('.sx').onclick=()=>{l._open=!l._open;drawL()};
    q('.lx').onclick=()=>{if((l.serials||[]).length&&!confirm('Remove this product with '+l.serials.length+' serials?'))return;v.lines.splice(i,1);mark();drawL()};
@@ -780,7 +795,7 @@ function quickParty(){editParty(null,p=>{if(CUR){CUR.v.partyId=p.id;render()}})}
 
 /* ---------- VOUCHER VIEW / PRINT ---------- */
 /* Admin: every entry. Godown manager: entries of own godown (a transfer already received is locked). Every change is logged. */
-function canEdit(v){if(isAdmin())return true;if(!ME||v.godownId!==ME.godownId)return false;return!(v.type==='TRF'&&v.status==='Received')}
+function canEdit(v){if(isViewer())return false;if(isAdmin())return true;if(!ME||v.godownId!==ME.godownId)return false;return!(v.type==='TRF'&&v.status==='Received')}
 const REFL={PUR:'Supplier Invoice No.',SAL:'Sale Invoice No.',SRT:'Credit Note No.',PRT:'Debit Note No.'};
 function vDoc(v){
  const rows=(v.lines||[]).map((l,i)=>{const it=I(l.itemId)||{};return{sn:i+1,item:it.name||'?',brand:it.brand||'',cat:it.group||'',batch:(l.serials||[]).length?(l.serials.length+' serials'):(l.batch||it.code||''),qty:l.qty,recv:l.recvQty,book:l.book}});
@@ -802,7 +817,7 @@ function viewV(id){const v=DB.vouchers.find(x=>x.id===id);if(!v)return;const t=T
  ${serialsHTML(v)}
  ${v.narration?`<p><span class="mut">Remarks:</span> ${esc(v.narration)}</p>`:''}
  <div class="btns" style="margin-top:14px;justify-content:flex-end">
-  ${!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&(isAdmin()||v.toGodownId===ME.godownId)?`<button class="btn g" id="vrc">📥 Receive</button>`:''}
+  ${!v.deleted&&v.type==='TRF'&&v.status!=='Received'&&!isViewer()&&(isAdmin()||v.toGodownId===ME.godownId)?`<button class="btn g" id="vrc">📥 Receive</button>`:''}
   ${!v.deleted&&canEdit(v)&&v.type!=='PHY'?`<button class="btn" id="ved">✏ Edit</button><button class="btn d" id="vdl">🗑 Delete</button>`:''}
   ${!isAdmin()?'<span class="tag mu" style="align-self:center">🔒 Locked — only Admin can edit / delete</span>':''}<button class="btn p" id="vpr">🖨 Print</button></div>`,true);
  m.querySelector('#vpr').onclick=()=>printV(v);
@@ -899,7 +914,7 @@ V.physical=el=>{title('Physical Verification (Stock Count)');
 function lineRows(types,filterFn){const gs=fGs();const out=[];
  DB.vouchers.forEach(v=>{if(v.deleted||!types.includes(v.type))return;if(!(gs.includes(v.godownId)||(v.type==='TRF'&&gs.includes(v.toGodownId))))return;if(v.date<P.ff||v.date>P.ft)return;if(P.fp&&v.partyId!==P.fp)return;
   v.lines.forEach(l=>{if(P.fi&&l.itemId!==P.fi)return;const it=I(l.itemId)||{};const sr=(l.serials||[]).map(o=>o.s);
-   const r={date:dmy(v.date),_d:v.date,vno:v.vno,type:T[v.type].s,g:gN(v.godownId),to:gN(v.toGodownId),party:pN(v.partyId),gstin:(Pt(v.partyId)||{}).gstin||'',ref:v.refNo||'',ref2:v.refNo2||'',invDate:dmy(v.invDate),dc:v.dcNo||'',ewb:v.ewb||'',veh:v.vehicle||'',lr:v.lr||'',trans:v.transporter||'',item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',batch:l.batch||'',serials:sr.join(', '),sc:sr.length,qty:num(l.qty),
+   const r={itemId:l.itemId,date:dmy(v.date),_d:v.date,vno:v.vno,type:T[v.type].s,g:gN(v.godownId),to:gN(v.toGodownId),party:pN(v.partyId),gstin:(Pt(v.partyId)||{}).gstin||'',ref:v.refNo||'',ref2:v.refNo2||'',invDate:dmy(v.invDate),dc:v.dcNo||'',ewb:v.ewb||'',veh:v.vehicle||'',lr:v.lr||'',trans:v.transporter||'',item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',batch:l.batch||'',serials:sr.join(', '),sc:sr.length,qty:num(l.qty),
     recv:v.status==='Received'?num(l.recvQty??l.qty):0,short:v.status==='Received'?num(l.qty)-num(l.recvQty??l.qty):0,missing:(l.missing||[]).join(', '),st:v.status||'',recvDate:dmy(v.recvDate),recvBy:v.recvBy||'',reason:v.reason||'',narr:v.narration||'',by:v.createdBy,_click:`viewV('${v.id}')`};
    if(match(P.fq,r.vno,r.party,r.ref,r.ref2,r.dc,r.ewb,r.veh,r.item,r.brand,r.cat,r.batch,r.serials,r.narr)&&(!filterFn||filterFn(r,v)))out.push(r)})});
  return out.sort((a,b)=>a._d.localeCompare(b._d));
@@ -915,6 +930,17 @@ regView('r_srt','Sale Return Register',['SRT'],[C.date,C.vno,C.g,{k:'party',l:'C
 regView('r_prt','Purchase Return Register',['PRT'],[C.date,C.vno,C.g,{k:'party',l:'Supplier'},{k:'ref',l:'Debit Note No.'},{k:'ref2',l:'Against Purchase Inv'},C.veh,C.item,C.brand,C.cat,SRC,C.qty,C.narr,C.by],'↪️');
 regView('r_trf','Stock Transfer Register',['TRF'],[C.date,C.vno,{k:'g',l:'From Godown'},{k:'to',l:'To Godown'},{k:'dc',l:'Challan No.'},C.veh,C.item,C.brand,SRC,{k:'qty',l:'Sent',n:1,t:1},{k:'recv',l:'Received',n:1,t:1},{k:'short',l:'Transit Shortage',n:1,t:1,f:v=>v>0?`<span class="neg">${fq(v)}</span>`:fq(v)},{k:'missing',l:'Missing Serials'},{k:'st',l:'Status',f:v=>`<span class="tag ${v==='Received'?'ok':'warn'}">${v}</span>`},{k:'recvDate',l:'Recv Date'},{k:'recvBy',l:'Recv By'},C.by],'🔁');
 regView('r_dmg','Damage / Shortage Register',['DMG'],[C.date,C.vno,C.g,{k:'reason',l:'Reason'},C.item,C.brand,C.cat,SRC,C.qty,C.narr,C.by],'⚠️');
+
+V.r_daily=el=>{title('Daily IN / OUT');if(!P.ff)P.ff=today();if(!P.ft)P.ft=P.ff;el.innerHTML=filterBar({item:1});
+ const DIR={PUR:'in',SRT:'in',SAL:'out',PRT:'out',DMG:'out'};
+ const cols=[C.date,{k:'type',l:'Type'},C.vno,C.g,{k:'pt',l:'Party / From → To'},{k:'ref',l:'Invoice / Ref No.'},C.item,C.brand,{k:'unit',l:'Unit'},{k:'inQ',l:'IN Qty',n:1,t:1},{k:'outQ',l:'OUT Qty',n:1,t:1},{k:'tOut',l:'Transfer Out',n:1,t:1},{k:'tIn',l:'Transfer In',n:1,t:1},SRC,C.veh,C.by];
+ bindFilter(()=>{const gs=fGs();
+  const rows=lineRows(['PUR','SRT','SAL','PRT','DMG','TRF'],(r,v)=>{r.unit=uB(I(r.itemId));
+   if(v.type==='TRF'){r.inQ=0;r.outQ=0;r.tOut=gs.includes(v.godownId)?r.qty:0;r.tIn=gs.includes(v.toGodownId)&&v.status==='Received'?r.recv:0;r.pt=r.g+' → '+r.to}
+   else{r.inQ=DIR[v.type]==='in'?r.qty:0;r.outQ=DIR[v.type]==='out'?r.qty:0;r.tOut=0;r.tIn=0;r.pt=r.party||r.reason||''}return true});
+  REPORT={title:'Daily IN-OUT Report',sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};
+  const sm=(f,k)=>rows.filter(f).reduce((a,r)=>a+(+r[k]||0),0);
+  $('#rout').innerHTML=`<div class="grid kpis" style="margin-bottom:14px"><div class="kpi" style="--c:#15803d"><small>Purchase IN</small><b>${fq(sm(r=>r.type===T.PUR.s,'inQ'))}</b></div><div class="kpi" style="--c:#0891b2"><small>Sale Return</small><b>${fq(sm(r=>r.type===T.SRT.s,'inQ'))}</b></div><div class="kpi" style="--c:#c62828"><small>OUT (Sale + P.Return + Damage)</small><b>${fq(sm(()=>1,'outQ'))}</b></div><div class="kpi" style="--c:#7c3aed"><small>Transfer Out / In</small><b>${fq(sm(()=>1,'tOut'))} / ${fq(sm(()=>1,'tIn'))}</b></div></div><div class="card"><h3>🗓️ Daily IN / OUT <span class="mut" style="font-weight:400;font-size:12px">${esc(REPORT.sub)} — press ⬇ Excel to download</span></h3>${table(cols,rows)}</div>`})};
 
 /* serial-wise stock rows: one row per panel in stock (+ non-serial products as one row, + un-scanned qty) */
 function serialStockRows(gs){const S=new Set(gs);const idx=serialIndex();const rows=[];
@@ -946,10 +972,10 @@ V.r_summary=el=>{title('Stock Summary');el.innerHTML=filterBar({extra:`<div clas
    REPORT={title:'Serial-wise Stock',sub:gLabel()+' | as on '+dmy(today()),cols:SERCOLS,rows};
    $('#rout').innerHTML=`<div class="card"><h3>📦 Panels in stock — ${esc(gLabel())}</h3>${table([{k:'k',l:'Godown | Product'},{k:'q',l:'Panels / Qty',n:1,t:1}],Object.keys(by).map(k=>({k,q:by[k]})))}</div><div class="card"><h3>🔢 Serial / barcode-wise list <span class="mut" style="font-weight:400;font-size:12px">(one row per panel — click for its history)</span></h3>${table(SERCOLS,rows)}</div>`;return}
   const byG=P.fvw!=='c';const idx=serialIndex();
-  let rows=summary(fGs(),P.ff,P.ft,byG).map(r=>{const it=I(r.itemId)||{};const sc=it.serial?Object.values(idx).filter(x=>x.itemId===r.itemId&&x.status==='In Stock'&&(byG?x.g===r.godownId:fGs().includes(x.g))).length:'';return{...r,item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',g:gN(r.godownId),sc,_click:`go('r_ledger',{fi:'${r.itemId}',fiN:'${esc((it.name||'').replace(/'/g,''))}',fg:'${byG?r.godownId:(P.fg||'ALL')}',ff:'${P.ff}',ft:'${P.ft}'})`}});
+  let rows=summary(fGs(),P.ff,P.ft,byG).map(r=>{const it=I(r.itemId)||{};const sc=it.serial?Object.values(idx).filter(x=>x.itemId===r.itemId&&x.status==='In Stock'&&(byG?x.g===r.godownId:fGs().includes(x.g))).length:'';return{...r,item:it.name||'?',brand:it.brand||'',cat:it.group||'',code:it.code||'',g:gN(r.godownId),sc,unit:uB(it),clu:uAlt(it)?fu(it,r.cl):'',_click:`go('r_ledger',{fi:'${r.itemId}',fiN:'${esc((it.name||'').replace(/'/g,''))}',fg:'${byG?r.godownId:(P.fg||'ALL')}',ff:'${P.ff}',ft:'${P.ft}'})`}});
   if(!P.fz)rows=rows.filter(r=>r.op||r.tIn||r.tOut||r.cl||r.transit);
   rows=rows.filter(r=>match(P.fq,r.item,r.brand,r.code,r.cat)).sort((a,b)=>a.item.localeCompare(b.item)||a.g.localeCompare(b.g));
-  const cols=[{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},...(byG?[{k:'g',l:'Godown'}]:[]),{k:'op',l:'Opening',n:1,t:1},{k:'pur',l:'Purchase In',n:1,t:1},{k:'srt',l:'Sale Return In',n:1,t:1},{k:'tin',l:'Transfer In',n:1,t:1},{k:'tIn',l:'TOTAL IN',n:1,t:1,f:v=>`<b class="pos">${fq(v)}</b>`},{k:'sal',l:'Sale Out',n:1,t:1},{k:'prt',l:'Purch. Return Out',n:1,t:1},{k:'tout',l:'Transfer Out',n:1,t:1},{k:'dmg',l:'Damage Out',n:1,t:1},{k:'tOut',l:'TOTAL OUT',n:1,t:1,f:v=>`<b class="neg">${fq(v)}</b>`},{k:'cl',l:'AVAILABLE',n:1,t:1,f:v=>`<b style="color:${v<0?'var(--bad)':'var(--acc)'}">${fq(v)}</b>`},{k:'sc',l:'Serial Nos. In Stock',n:1,t:1,f:v=>v===''?'':fq(v)},{k:'transit',l:'In Transit',n:1,t:1}];
+  const cols=[{k:'item',l:'Product'},{k:'brand',l:'Brand'},{k:'cat',l:'Category'},...(byG?[{k:'g',l:'Godown'}]:[]),{k:'op',l:'Opening',n:1,t:1},{k:'pur',l:'Purchase In',n:1,t:1},{k:'srt',l:'Sale Return In',n:1,t:1},{k:'tin',l:'Transfer In',n:1,t:1},{k:'tIn',l:'TOTAL IN',n:1,t:1,f:v=>`<b class="pos">${fq(v)}</b>`},{k:'sal',l:'Sale Out',n:1,t:1},{k:'prt',l:'Purch. Return Out',n:1,t:1},{k:'tout',l:'Transfer Out',n:1,t:1},{k:'dmg',l:'Damage Out',n:1,t:1},{k:'tOut',l:'TOTAL OUT',n:1,t:1,f:v=>`<b class="neg">${fq(v)}</b>`},{k:'cl',l:'AVAILABLE',n:1,t:1,f:v=>`<b style="color:${v<0?'var(--bad)':'var(--acc)'}">${fq(v)}</b>`},{k:'unit',l:'Unit'},...(rows.some(r=>r.clu)?[{k:'clu',l:'Available (Bigger Unit)'}]:[]),{k:'sc',l:'Serial Nos. In Stock',n:1,t:1,f:v=>v===''?'':fq(v)},{k:'transit',l:'In Transit',n:1,t:1}];
   REPORT={title:'Stock Summary',sub:gLabel()+' | '+dmy(P.ff)+' to '+dmy(P.ft),cols,rows};
   $('#rout').innerHTML=`<div class="card"><h3>📦 Stock Summary — ${esc(gLabel())} <span class="mut" style="font-weight:400;font-size:12px">(click a row for the product ledger)</span></h3>${table(cols,rows)}</div>`});
  $('#fxl').onclick=exportStockWithSerials;$('#fxl').innerHTML='⬇ Excel (with serial nos.)';
@@ -1112,8 +1138,8 @@ V.audit=el=>{title('Audit Log');el.innerHTML=filterBar({});
 V.items=el=>{title('Item Master (Products)');
  el.innerHTML=`<div class="card"><div class="row"><div class="f"><input id="isq" placeholder="Search product / brand / category / barcode…" value="${esc(P.q||'')}"></div><button class="btn p" id="inew">＋ New Product</button><button class="btn" id="ixl">⬇ Excel</button></div></div><div class="card" id="il"></div>`;
  const draw=()=>{const q=$('#isq').value.trim();P.q=q;const all=summary(myG(),'1900-01-01','9999-12-31',false);const idx=serialIndex();const gs=new Set(myG());
-  const rows=DB.items.filter(i=>!i.deleted&&match(q,i.name,i.brand,i.group,i.code,i.alias)).sort((a,b)=>a.name.localeCompare(b.name)).map(i=>({name:i.name,brand:i.brand||'',cat:i.group||'',code:i.serial?('Serial: '+((i.serialPrefixes||[]).join(', ')||'per unit')):(i.code||''),sr:i.serial?Object.values(idx).filter(r=>r.itemId===i.id&&r.status==='In Stock'&&gs.has(r.g)).length:'',stk:(all.find(r=>r.itemId===i.id)||{}).cl||0,st:i.active===false?'Inactive':'',_click:`editItem('${i.id}')`}));
-  const cols=[{k:'name',l:'Product Name'},{k:'brand',l:'Brand Name'},{k:'cat',l:'Product Category'},{k:'code',l:'Serial / Barcode No.'},{k:'stk',l:'Qty (In Stock)',n:1,t:1,f:v=>`<b>${fq(v)}</b>`},{k:'sr',l:'Serials In Stock',n:1,f:v=>v===''?'':fq(v)},{k:'st',l:''}];
+  const rows=DB.items.filter(i=>!i.deleted&&match(q,i.name,i.brand,i.group,i.code,i.alias)).sort((a,b)=>a.name.localeCompare(b.name)).map(i=>({name:i.name,brand:i.brand||'',cat:i.group||'',code:i.serial?('Serial: '+((i.serialPrefixes||[]).join(', ')||'per unit')):(i.code||''),sr:i.serial?Object.values(idx).filter(r=>r.itemId===i.id&&r.status==='In Stock'&&gs.has(r.g)).length:'',stk:(all.find(r=>r.itemId===i.id)||{}).cl||0,unit:uLbl(i),_it:i,st:i.active===false?'Inactive':'',_click:`editItem('${i.id}')`}));rows.forEach(r=>{r.stku=uAlt(r._it)?fu(r._it,r.stk):'';delete r._it});
+  const cols=[{k:'name',l:'Product Name'},{k:'brand',l:'Brand Name'},{k:'cat',l:'Product Category'},{k:'code',l:'Serial / Barcode No.'},{k:'stk',l:'Qty (In Stock)',n:1,t:1,f:v=>`<b>${fq(v)}</b>`},{k:'unit',l:'Unit'},...(rows.some(r=>r.stku)?[{k:'stku',l:'Qty (Bigger Unit)'}]:[]),{k:'sr',l:'Serials In Stock',n:1,f:v=>v===''?'':fq(v)},{k:'st',l:''}];
   REPORT={title:'Item Master',cols,rows};$('#il').innerHTML=`<h3>🏷️ ${rows.length} products</h3>`+table(cols,rows)};
  $('#isq').oninput=draw;if($('#inew'))$('#inew').onclick=()=>editItem(null);$('#ixl').onclick=()=>{P.fg='ALL';P.ft=today();exportStockWithSerials()};draw();
 };
@@ -1127,20 +1153,23 @@ function editItem(id){const it=id?I(id):{name:'',brand:'',group:'',code:'',unit:
   <div class="f"><label>Tracking</label><select id="it_serial"><option value="1">Serial No. on every unit (e.g. solar panel QR)</option><option value="0" ${it.serial?'':'selected'}>One barcode for the product</option></select></div>
   <div class="f" id="w_pre"><label>Serial No. starts with (auto-link new serials)</label><input id="it_pre" value="${esc((it.serialPrefixes||[]).join(', '))}" placeholder="e.g. WS092690784" style="font-family:monospace"></div>
   <div class="f" id="w_code"><label>Barcode No.</label><div style="display:flex;gap:6px"><input id="it_code" value="${esc(it.code||'')}"><button class="btn sm" id="itgen" title="Auto generate">Auto</button><button class="btn sm" id="itsc">📷</button></div></div>
-  <div class="f"><label>Qty (current stock)</label><input value="${fq(stk)}" readonly title="Qty changes only through stock entries (scan IN / OUT)"></div>
+  <div class="f"><label>Unit</label><input id="it_unit" list="it_ul" value="${esc(it.unit||'Pcs')}" placeholder="Pcs"><datalist id="it_ul">${UNITS.map(u=>`<option>${u}</option>`).join('')}</datalist></div>
+  <div class="f"><label>Bigger Unit (optional)</label><div style="display:flex;gap:6px;align-items:center"><span class="mut">1</span><input id="it_au" list="it_ul" value="${esc(it.altUnit||'')}" placeholder="e.g. Bundle" style="width:110px"><span class="mut">=</span><input id="it_af" type="number" min="0" step="any" value="${esc(it.altFactor||'')}" placeholder="25" style="width:80px"><span class="mut" id="it_ub">${esc(it.unit||'Pcs')}</span></div></div>
+  <div class="f"><label>Qty (current stock)</label><input value="${id?fu(it,stk):'0'}" readonly title="Qty changes only through stock entries (scan IN / OUT)"></div>
   <div class="f"><label>Status</label><select id="it_active"><option value="1">Active</option><option value="0" ${it.active===false?'selected':''}>Inactive</option></select></div></div>
   <div id="itbc" style="margin-top:12px;max-width:260px"></div><div class="btns" style="justify-content:flex-end;margin-top:14px">${id?'<button class="btn d" id="itdel">🗑 Delete Product</button>':''}<button class="btn p" id="itsv">💾 Save</button></div>`);
  const sw=()=>{const s=m.querySelector('#it_serial').value==='1';m.querySelector('#w_pre').style.display=s?'':'none';m.querySelector('#w_code').style.display=s?'none':'';bc()};
  const bc=()=>{const c=m.querySelector('#it_code').value.trim();m.querySelector('#itbc').innerHTML=c&&m.querySelector('#it_serial').value==='0'?barcodeSVG(c,40)+`<div style="text-align:center;font-family:monospace">${esc(c)}</div>`:''};
- m.querySelector('#it_serial').onchange=sw;m.querySelector('#it_code').oninput=bc;sw();
+ m.querySelector('#it_serial').onchange=sw;m.querySelector('#it_code').oninput=bc;sw();m.querySelector('#it_unit').oninput=e=>{m.querySelector('#it_ub').textContent=e.target.value.trim()||'Pcs'};
  m.querySelector('#itgen').onclick=()=>{let n=DB.items.length+1;let c;do{c='GS'+String(n++).padStart(6,'0')}while(DB.items.some(x=>x.code===c));m.querySelector('#it_code').value=c;bc()};
  m.querySelector('#itsc').onclick=()=>scanner(c=>{m.querySelector('#it_code').value=c;bc()});
  if(m.querySelector('#itdel'))m.querySelector('#itdel').onclick=()=>{if(delItem(id))m.close()};
  m.querySelector('#itsv').onclick=()=>{const g=k=>m.querySelector('#it_'+k).value.trim();const n=g('name');if(!n)return toast('Product name is required');
   if(DB.items.some(x=>x.id!==id&&x.name.toLowerCase()===n.toLowerCase()))return toast('A product with this name already exists');
   const ser=g('serial')==='1';const c=ser?'':g('code');if(c&&DB.items.some(x=>x.id!==id&&(x.code||'').toLowerCase()===c.toLowerCase()))return toast('This barcode is used by another product');
-  const r={...it,id:id||uid('I'),name:n,brand:g('brand'),group:g('group'),code:c,unit:it.unit||'Nos',active:g('active')==='1',serial:ser,serialPrefixes:ser?g('pre').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean):[]};
-  put('items',r);if(id){const ch=[['name','Name'],['brand','Brand'],['group','Category'],['code','Barcode'],['active','Active']].filter(([k])=>String(it[k]??'')!==String(r[k]??'')).map(([k,l])=>`${l}: "${it[k]??''}" → "${r[k]??''}"`);log('ITEM EDIT',r.name+(ch.length?' | '+ch.join(' | '):' | no change'))}else log('ITEM NEW',r.name+(r.brand?' | '+r.brand:''));save();m.close();render();toast('✓ Product saved')};
+  const au=g('au'),af=+g('af')||0;if(au&&af<=1)return toast('Enter how many '+(g('unit')||'Pcs')+' are in 1 '+au);if(!au&&af)return toast('Enter the bigger unit name (e.g. Bundle)');
+  const r={...it,id:id||uid('I'),name:n,brand:g('brand'),group:g('group'),code:c,unit:g('unit')||'Pcs',altUnit:au,altFactor:au?af:0,active:g('active')==='1',serial:ser,serialPrefixes:ser?g('pre').split(',').map(x=>x.trim().toUpperCase()).filter(Boolean):[]};
+  put('items',r);if(id){const ch=[['name','Name'],['brand','Brand'],['group','Category'],['code','Barcode'],['unit','Unit'],['altUnit','Bigger Unit'],['altFactor','Per Bigger Unit'],['active','Active']].filter(([k])=>String(it[k]??'')!==String(r[k]??'')).map(([k,l])=>`${l}: "${it[k]??''}" → "${r[k]??''}"`);log('ITEM EDIT',r.name+(ch.length?' | '+ch.join(' | '):' | no change'))}else log('ITEM NEW',r.name+(r.brand?' | '+r.brand:''));save();m.close();render();toast('✓ Product saved')};
 }
 
 /* ---------- PARTY MASTER ---------- */
@@ -1242,8 +1271,8 @@ async function doImport(k,inp){const f=inp.files[0];if(!f)return;let rows;try{ro
 /* ---------- USERS & GODOWNS ---------- */
 V.users=el=>{title('Users & Godowns');
  el.innerHTML=`<div class="card"><h3>🏬 Godowns <button class="btn sm" id="gnew" style="margin-left:auto">＋ Add Godown</button></h3>${table([{k:'code',l:'Code'},{k:'name',l:'Godown Name'},{k:'u',l:'Manager Login(s)'},{k:'url',l:'Server URL',f:v=>v?'<span class="tag ok">✓ Set</span>':'<span class="mut">main</span>'},{k:'st',l:'Status'}],DB.godowns.map(g=>({...g,url:g.syncUrl||'',u:DB.users.filter(u=>u.godownId===g.id).map(u=>u.username).join(', '),st:g.active===false?'Inactive':'Active',_click:`editGodown('${g.id}')`})))}</div>
- <div class="card"><h3>🔐 Users <button class="btn sm" id="unew" style="margin-left:auto">＋ Add User</button></h3>${table([{k:'username',l:'Username'},{k:'name',l:'Name'},{k:'role',l:'Role',f:v=>`<span class="tag ${v==='admin'?'bad':'inf'}">${v}</span>`},{k:'g',l:'Godown (only this is visible)'},{k:'st',l:'Status'}],DB.users.map(u=>({...u,g:u.role==='admin'?'ALL':gN(u.godownId),st:u.active===false?'Disabled':'Active',_click:`editUser('${u.id}')`})))}
- <p class="mut" style="font-size:12px">Default passwords: admin@123, ash@123, lkp@123, stp@123, khb@123, ndg@123, vrd@123 — <b>change them immediately</b>. A godown manager can only see their own godown.</p></div>`;
+ <div class="card"><h3>🔐 Users <button class="btn sm" id="unew" style="margin-left:auto">＋ Add User</button></h3>${table([{k:'username',l:'Username'},{k:'name',l:'Name'},{k:'role',l:'Role',f:v=>`<span class="tag ${v==='admin'?'bad':v==='viewer'?'ok':'inf'}">${v==='viewer'?'viewer (view only)':v}</span>`},{k:'g',l:'Godown (only this is visible)'},{k:'st',l:'Status',f:v=>v.startsWith('Locked')?`<span class="tag bad">${v}</span>`:v}],DB.users.map(u=>({...u,g:u.role==='admin'||(u.role==='viewer'&&!u.godownId)?'ALL':gN(u.godownId),st:u.active===false?'Disabled':u.locked?'Locked 🔒':'Active',_click:`editUser('${u.id}')`})))}
+ <p class="mut" style="font-size:12px">Use strong passwords (8+ characters with a number and symbol). A godown manager can only see their own godown. A <b>viewer</b> can only see stock (dashboard, Daily IN/OUT with Excel, godown-wise stock) — no entry, edit or delete. After <b>5 wrong passwords</b> a user is locked; set a new password here to unlock.</p></div>`;
  $('#gnew').onclick=()=>editGodown(null);$('#unew').onclick=()=>editUser(null);
 };
 function editGodown(id){const g=id?G(id):{name:'',code:'',active:true};
@@ -1252,12 +1281,13 @@ function editGodown(id){const g=id?G(id):{name:'',code:'',active:true};
   put('godowns',{...g,id:id||uid('G'),name:n,code:c,active:m.querySelector('#ga').value==='1'});log('GODOWN',n,'');save();m.close();buildNav();render()};
 }
 function editUser(id){const u=id?DB.users.find(x=>x.id===id):{username:'',name:'',role:'manager',godownId:DB.godowns[0].id,active:true};
- const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} User</h3><div class="grid" style="grid-template-columns:1fr 1fr;gap:12px"><div class="f"><label>Username</label><input id="uu" value="${esc(u.username)}" ${id?'readonly':''}></div><div class="f"><label>Full Name</label><input id="un" value="${esc(u.name)}"></div>
- <div class="f"><label>Role</label><select id="ur"><option value="manager">Godown Manager</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin (sees everything)</option></select></div><div class="f"><label>Godown</label><select id="ug">${DB.godowns.map(g=>`<option value="${g.id}" ${u.godownId===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}</select></div>
- <div class="f"><label>${id?'New Password (blank = keep same)':'Password'}</label><input id="up" type="text"></div><div class="f"><label>Status</label><select id="ua"><option value="1">Active</option><option value="0" ${u.active===false?'selected':''}>Disabled</option></select></div></div><div class="btns" style="justify-content:flex-end;margin-top:14px"><button class="btn p" id="usv">Save</button></div>`);
- m.querySelector('#usv').onclick=()=>{const g=k=>m.querySelector('#'+k).value.trim();const un=g('uu').toLowerCase();if(!un)return toast('Enter a username');if(!id&&DB.users.some(x=>x.username===un))return toast('This username already exists');if(!id&&!g('up'))return toast('Enter a password');
+ const m=modal(`<h3 style="margin-top:0">${id?'Edit':'New'} User</h3><div class="grid" style="grid-template-columns:1fr 1fr;gap:12px"><div class="f"><label>Username</label><input id="uu" value="${esc(u.username)}" autocomplete="off"></div><div class="f"><label>Full Name</label><input id="un" value="${esc(u.name)}"></div>
+ <div class="f"><label>Role</label><select id="ur"><option value="manager">Godown Manager</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin (sees everything)</option><option value="viewer" ${u.role==='viewer'?'selected':''}>Viewer (only sees stock — no entry)</option></select></div><div class="f"><label>Godown</label><select id="ug"><option value="" ${u.role==='viewer'&&!u.godownId?'selected':''}>— All Godowns (Viewer only) —</option>${DB.godowns.map(g=>`<option value="${g.id}" ${u.godownId===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}</select></div>
+ <div class="f"><label>${id?'New Password (blank = keep same)':'Password'}</label><input id="up" type="text"></div><div class="f"><label>Status</label><select id="ua"><option value="1">Active</option><option value="0" ${u.active===false?'selected':''}>Disabled</option></select></div></div>${u.locked?'<div class="warnbox" style="margin-top:12px">🔒 <b>Locked</b> after 5 wrong passwords'+(u.lockedAt?' ('+esc(new Date(u.lockedAt).toLocaleString("en-IN"))+')':'')+'. Type a <b>New Password</b> above and Save to unlock this user.</div>':''}<div class="btns" style="justify-content:flex-end;margin-top:14px"><button class="btn p" id="usv">Save</button></div>`);
+ m.querySelector('#usv').onclick=()=>{const g=k=>m.querySelector('#'+k).value.trim();const un=g('uu').toLowerCase();if(!un)return toast('Enter a username');if(!/^[a-z0-9._-]{3,30}$/.test(un))return toast('Username: 3–30 characters, only a-z 0-9 . _ - (no spaces)');if(DB.users.some(x=>x.id!==id&&x.username===un))return toast('This username already exists');if(!id&&!g('up'))return toast('Enter a password');
   if(id===ME.id&&g('ur')!=='admin')return toast('You cannot remove your own admin role');
-  const r={...u,id:id||uid('U'),username:un,name:g('un'),role:g('ur'),godownId:g('ur')==='admin'?'':g('ug'),active:g('ua')==='1'};if(g('up'))r.passHash=ph(g('up'));put('users',r);log('USER',un+(g('up')?' (password set)':''),'');save();m.close();render();toast('✓ User saved')};
+  if(g('ur')==='manager'&&!g('ug'))return toast('Select the godown for this manager');if(g('up')&&g('up').length<8)return toast('Password: use at least 8 characters');
+  const r={...u,id:id||uid('U'),username:un,name:g('un'),role:g('ur'),godownId:g('ur')==='admin'?'':g('ug'),active:g('ua')==='1'};if(g('up')){r.passHash=ph(g('up'));r.locked=false;delete r.lockedAt}else if(u.locked)toast('This user stays locked — set a new password to unlock',4000);put('users',r);log('USER',(id&&u.username!==un?u.username+' → '+un+' (username changed)':un)+(g('up')?' (password set)':''),'');if(id&&u.username!==un){toast('Username changed. New login: '+un,5000);if(id===ME.id&&DB.meta.syncUrl)setTimeout(()=>syncNow(true),300)}save();m.close();render();toast('✓ User saved')};
 }
 
 /* ---------- SETTINGS ---------- */
@@ -1336,7 +1366,7 @@ V.settings=el=>{title('Settings');
  $('#cpsv').onclick=()=>{if(ph($('#cp0').value)!==ME.passHash)return toast('Current password is wrong');if($('#cp1').value.length<4)return toast('Use at least 4 characters');if($('#cp1').value!==$('#cp2').value)return toast('Passwords do not match');
   const u=DB.users.find(x=>x.id===ME.id);u.passHash=ph($('#cp1').value);touch('users',u);ME=u;sessionStorage.setItem('gsm_me',JSON.stringify(u));log('PASSWORD','Changed own password');save();toast('✓ Password updated');render()};
  if($('#ssv'))$('#ssv').onclick=()=>{try{new RegExp($('#srx').value)}catch(e){return toast('Invalid serial pattern')}const gs=$('#sgst').value.trim().toUpperCase();if(gs&&!/^\d{2}[A-Z0-9]{13}$/.test(gs))return toast('GSTIN should be 15 characters');DB.meta.company=$('#sc').value.trim()||'My Company';DB.meta.gstin=gs;DB.meta.address=$('#sadd').value.trim();DB.meta.serialRegex=$('#srx').value.trim()||'[A-Z]{2}\\d{10,}';DB.meta.allowNeg=$('#sneg').checked;save(false);buildNav();toast('✓ Saved')};
- if($('#susv'))$('#susv').onclick=()=>{DB.meta.syncUrl=$('#su').value.trim();DB.meta.autoSync=$('#sau').checked;if(DB.meta.syncUrl&&isAdmin()){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)r.updatedAt=Date.now();DB.dirty[c+'|'+r.id]=r.updatedAt}))}save(false);toast('✓ URL saved');syncNow()};
+ if($('#susv'))$('#susv').onclick=()=>{DB.meta.syncUrl=$('#su').value.trim();DB.meta.autoSync=$('#sau').checked;if(DB.meta.syncUrl&&isAdmin()){['godowns','users','items','parties','vouchers','audit','deletions'].forEach(c=>(DB[c]||[]).forEach(r=>{if(!r.updatedAt)return;DB.dirty[c+'|'+r.id]=r.updatedAt}))}save(false);toast('✓ URL saved');syncNow()};
  $('#snow').onclick=()=>syncNow();$('#stest').onclick=async()=>{try{const j=await api({action:'ping'});toast(j.ok?'✓ Server connected':'Server: '+j.error,3500)}catch(e){toast('Could not connect: '+e.message,4000)}};
  bindUrlCard();
  if($('#sclr'))$('#sclr').onclick=()=>{if(prompt('ALL data will be deleted. Type DELETE to confirm')!=='DELETE')return;localStorage.removeItem(LS);location.reload()};
